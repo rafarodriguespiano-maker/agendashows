@@ -19,6 +19,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.Month;
 import java.time.format.TextStyle;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
@@ -45,30 +47,42 @@ public class ShowController {
         model.addAttribute("meses", nomesDosMeses());
         model.addAttribute("situacoes", StatusPagamento.values());
         model.addAttribute("parametrosLista", requisicao.getQueryString());
+        adicionarFiltroAoModelo(filtro.getMes(), filtro.getAno(), model);
         return "shows/list";
     }
 
     @GetMapping("/novo")
-    public String novo(Model model) {
+    public String novo(@RequestParam(required = false) Integer mes,
+                       @RequestParam(required = false) Integer ano,
+                       Model model) {
         model.addAttribute("formulario", new ShowForm());
+        adicionarFiltroAoModelo(mes, ano, model);
         return VIEW_FORMULARIO;
     }
 
     @PostMapping
     public String criar(@Valid @ModelAttribute("formulario") ShowForm formulario,
                         BindingResult resultado,
-                        RedirectAttributes redirecionamento) {
+                        @RequestParam(required = false) Integer mes,
+                        @RequestParam(required = false) Integer ano,
+                        RedirectAttributes redirecionamento,
+                        Model model) {
         if (resultado.hasErrors()) {
+            adicionarFiltroAoModelo(mes, ano, model);
             return VIEW_FORMULARIO;
         }
         showService.criar(formulario);
         redirecionamento.addFlashAttribute(FLASH_MENSAGEM, "Show cadastrado com sucesso.");
-        return REDIRECT_SHOWS;
+        return redirecionarParaLista(mes, ano);
     }
 
     @GetMapping("/{id}/editar")
-    public String editar(@PathVariable Long id, Model model) {
+    public String editar(@PathVariable Long id,
+                         @RequestParam(required = false) Integer mes,
+                         @RequestParam(required = false) Integer ano,
+                         Model model) {
         model.addAttribute("formulario", ShowForm.de(showService.buscar(id)));
+        adicionarFiltroAoModelo(mes, ano, model);
         return VIEW_FORMULARIO;
     }
 
@@ -76,14 +90,18 @@ public class ShowController {
     public String atualizar(@PathVariable Long id,
                             @Valid @ModelAttribute("formulario") ShowForm formulario,
                             BindingResult resultado,
-                            RedirectAttributes redirecionamento) {
+                            @RequestParam(required = false) Integer mes,
+                            @RequestParam(required = false) Integer ano,
+                            RedirectAttributes redirecionamento,
+                            Model model) {
         if (resultado.hasErrors()) {
             formulario.setId(id);
+            adicionarFiltroAoModelo(mes, ano, model);
             return VIEW_FORMULARIO;
         }
         showService.atualizar(id, formulario);
         redirecionamento.addFlashAttribute(FLASH_MENSAGEM, "Show atualizado com sucesso.");
-        return REDIRECT_SHOWS;
+        return redirecionarParaLista(mes, ano);
     }
 
     @PostMapping("/{id}/pagamento")
@@ -115,6 +133,26 @@ public class ShowController {
             return REDIRECT_SHOWS;
         }
         return REDIRECT_SHOWS + "?" + filtros;
+    }
+
+    private String redirecionarParaLista(Integer mes, Integer ano) {
+        List<String> parametros = new ArrayList<>();
+        if (mes != null && mes >= 1 && mes <= 12) {
+            parametros.add("mes=" + mes);
+        }
+        if (ano != null && ano >= 1 && ano <= 9999) {
+            parametros.add("ano=" + ano);
+        }
+        return parametros.isEmpty() ? REDIRECT_SHOWS : REDIRECT_SHOWS + "?" + String.join("&", parametros);
+    }
+
+    private void adicionarFiltroAoModelo(Integer mes, Integer ano, Model model) {
+        if (mes != null && mes >= 1 && mes <= 12) {
+            model.addAttribute("mes", mes);
+        }
+        if (ano != null && ano >= 1 && ano <= 9999) {
+            model.addAttribute("ano", ano);
+        }
     }
 
     private Map<Integer, String> nomesDosMeses() {

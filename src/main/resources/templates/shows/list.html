@@ -9,7 +9,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3 mb-0">Agenda de shows</h1>
-        <a class="btn btn-primary" th:href="@{/shows/novo}">Novo show</a>
+        <a class="btn btn-primary" th:href="@{/shows/novo(mes=${filtro.mes},ano=${filtro.ano})}">Novo show</a>
     </div>
 
     <div class="card shadow-sm mb-4">
@@ -81,7 +81,7 @@
                           th:text="${show.pago} ? 'Pago' : 'Não pago'"></span>
                 </td>
                 <td class="text-end text-nowrap">
-                    <a class="btn btn-sm btn-outline-primary" th:href="@{/shows/{id}/editar(id=${show.id})}">Editar</a>
+                    <a class="btn btn-sm btn-outline-primary" th:href="@{/shows/{id}/editar(id=${show.id},mes=${filtro.mes},ano=${filtro.ano})}">Editar</a>
                     <form th:action="@{/shows/{id}/pagamento(id=${show.id})}" method="post" class="d-inline">
                         <input type="hidden" name="filtros" th:value="${parametrosLista}">
                         <button type="submit" class="btn btn-sm btn-outline-success"

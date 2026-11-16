@@ -2,6 +2,8 @@ package com.example.agendashows.show.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -57,8 +59,73 @@ class ShowControllerTest {
         mvc.perform(get("/shows").param("mes", "3").param("ano", "2026").param("situacaoPagamento", "PAGO"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("shows/list"))
+                .andExpect(content().string(containsString("/shows/novo?mes=3&amp;ano=2026")))
                 .andExpect(content().string(containsString("Banda Visível")))
                 .andExpect(content().string(not(containsString("Banda Oculta"))));
+    }
+
+    @Test
+    @WithMockUser
+    void mantemMesEAnoNoRedirecionamentoAoCriarShow() throws Exception {
+        mvc.perform(post("/shows").with(csrf())
+                        .param("data", "2026-03-15")
+                        .param("artista", "Banda Nova")
+                        .param("local", "Casa de Show")
+                        .param("mes", "3")
+                        .param("ano", "2026"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/shows?mes=3&ano=2026"));
+
+        salvar(LocalDate.of(2026, 3, 10), "Banda Visível", true);
+        salvar(LocalDate.of(2026, 5, 10), "Banda Oculta", true);
+
+        mvc.perform(get("/shows").param("mes", "3").param("ano", "2026"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("filtro", hasProperty("mes", is(3))))
+                .andExpect(content().string(containsString("Banda Visível")))
+                .andExpect(content().string(containsString("Banda Nova")))
+                .andExpect(content().string(not(containsString("Banda Oculta"))));
+    }
+
+    @Test
+    @WithMockUser
+    void mantemMesEAnoAoExibirErrosDeValidacao() throws Exception {
+        mvc.perform(post("/shows").with(csrf())
+                        .param("artista", "")
+                        .param("local", "")
+                        .param("mes", "3")
+                        .param("ano", "2026"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("shows/form"))
+                .andExpect(model().attribute("mes", is(3)))
+                .andExpect(model().attribute("ano", is(2026)));
+    }
+
+    @Test
+    @WithMockUser
+    void carregaFiltroNosLinksDoFormulario() throws Exception {
+        mvc.perform(get("/shows/novo").param("mes", "3").param("ano", "2026"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("shows/form"))
+                .andExpect(model().attribute("mes", is(3)))
+                .andExpect(model().attribute("ano", is(2026)))
+                .andExpect(content().string(containsString("name=\"mes\" value=\"3\"")))
+                .andExpect(content().string(containsString("name=\"ano\" value=\"2026\"")));
+    }
+
+    @Test
+    @WithMockUser
+    void mantemMesEAnoNoRedirecionamentoAoAtualizarShow() throws Exception {
+        Show show = salvar(LocalDate.of(2026, 3, 10), "Banda", false);
+
+        mvc.perform(post("/shows/{id}", show.getId()).with(csrf())
+                        .param("data", "2026-03-10")
+                        .param("artista", "Banda Editada")
+                        .param("local", "Local")
+                        .param("mes", "3")
+                        .param("ano", "2026"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/shows?mes=3&ano=2026"));
     }
 
     @Test
