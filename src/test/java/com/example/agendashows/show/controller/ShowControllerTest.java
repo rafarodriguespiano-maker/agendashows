@@ -18,6 +18,7 @@ import com.example.agendashows.show.entity.Show;
 import com.example.agendashows.show.repository.ShowRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,6 +112,20 @@ class ShowControllerTest {
                 .andExpect(model().attribute("ano", is(2026)))
                 .andExpect(content().string(containsString("name=\"mes\" value=\"3\"")))
                 .andExpect(content().string(containsString("name=\"ano\" value=\"2026\"")));
+    }
+
+    @Test
+    @WithMockUser
+    void carregaDataDoShowNoFormularioDeEdicao() throws Exception {
+        Show show = salvar(LocalDate.of(2026, 3, 10), "Banda", false);
+        show.setHorario(LocalTime.of(21, 30));
+        showRepository.save(show);
+
+        mvc.perform(get("/shows/{id}/editar", show.getId()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("shows/form"))
+                .andExpect(content().string(containsString("name=\"data\" value=\"2026-03-10\"")))
+                .andExpect(content().string(containsString("name=\"horario\" value=\"21:30\"")));
     }
 
     @Test

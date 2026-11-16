@@ -11,12 +11,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.Formatter;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.ArrayList;
@@ -49,6 +53,22 @@ public class ShowController {
         model.addAttribute("parametrosLista", requisicao.getQueryString());
         adicionarFiltroAoModelo(filtro.getMes(), filtro.getAno(), model);
         return "shows/list";
+    }
+
+    // Converte LocalDate em ISO (yyyy-MM-dd) apenas neste controller, formato exigido por <input type="date">.
+    @InitBinder
+    void configurarData(WebDataBinder binder) {
+        binder.addCustomFormatter(new Formatter<LocalDate>() {
+            @Override
+            public LocalDate parse(String texto, Locale locale) {
+                return StringUtils.hasText(texto) ? LocalDate.parse(texto) : null;
+            }
+
+            @Override
+            public String print(LocalDate data, Locale locale) {
+                return data == null ? "" : data.toString();
+            }
+        });
     }
 
     @GetMapping("/novo")
