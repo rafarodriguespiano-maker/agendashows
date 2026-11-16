@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: header(${formulario.id == null ? 'Novo show' : 'Editar show'})}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/base :: navbar}"></nav>
+
+<main class="container py-4" style="max-width: 800px;">
+    <h1 class="h3 mb-4" th:text="${formulario.id == null} ? 'Novo show' : 'Editar show'">Show</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <form th:action="${formulario.id == null} ? @{/shows} : @{/shows/{id}(id=${formulario.id})}"
+                  method="post" th:object="${formulario}">
+                <input type="hidden" th:field="*{id}">
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="data" class="form-label">Data do show <span class="text-danger">*</span></label>
+                        <input type="date" id="data" class="form-control" th:field="*{data}"
+                               th:classappend="${#fields.hasErrors('data')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{data}"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="horario" class="form-label">Horário</label>
+                        <input type="time" id="horario" class="form-control" th:field="*{horario}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="cache" class="form-label">Cachê (R$)</label>
+                        <input type="number" id="cache" class="form-control" step="0.01" min="0" th:field="*{cache}"
+                               th:classappend="${#fields.hasErrors('cache')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{cache}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="artista" class="form-label">Artista <span class="text-danger">*</span></label>
+                        <input type="text" id="artista" class="form-control" maxlength="150" th:field="*{artista}"
+                               th:classappend="${#fields.hasErrors('artista')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{artista}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="local" class="form-label">Local <span class="text-danger">*</span></label>
+                        <input type="text" id="local" class="form-control" maxlength="200" th:field="*{local}"
+                               th:classappend="${#fields.hasErrors('local')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{local}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="observacoes" class="form-label">Observações</label>
+                        <textarea id="observacoes" class="form-control" rows="4" th:field="*{observacoes}"
+                                  th:classappend="${#fields.hasErrors('observacoes')} ? 'is-invalid'"></textarea>
+                        <div class="invalid-feedback" th:errors="*{observacoes}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-check">
+                            <input type="checkbox" id="pago" class="form-check-input" th:field="*{pago}">
+                            <label for="pago" class="form-check-label">Cachê pago</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a class="btn btn-outline-secondary" th:href="@{/shows}">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+</body>
+</html>

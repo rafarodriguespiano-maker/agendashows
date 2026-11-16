@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: header('Shows')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/base :: navbar}"></nav>
+
+<main class="container py-4">
+    <div th:replace="~{fragments/base :: messages}"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Agenda de shows</h1>
+        <a class="btn btn-primary" th:href="@{/shows/novo}">Novo show</a>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form th:action="@{/shows}" method="get" th:object="${filtro}" class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small">Mês</label>
+                    <select class="form-select" th:field="*{mes}">
+                        <option value="">Todos</option>
+                        <option th:each="mes : ${meses}" th:value="${mes.key}" th:text="${mes.value}"></option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <label class="form-label small">Ano</label>
+                    <input type="number" class="form-control" min="1" max="9999" th:field="*{ano}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Pagamento</label>
+                    <select class="form-select" th:field="*{situacaoPagamento}">
+                        <option value="">Todos</option>
+                        <option th:each="situacao : ${situacoes}" th:value="${situacao}" th:text="${situacao.descricao}"></option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">Observações</label>
+                    <input type="text" class="form-control" maxlength="200" th:field="*{observacoes}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small">Local</label>
+                    <input type="text" class="form-control" maxlength="200" th:field="*{local}">
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-secondary flex-fill">Filtrar</button>
+                    <a class="btn btn-outline-secondary flex-fill" th:href="@{/shows}">Limpar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle bg-white shadow-sm">
+            <thead>
+            <tr>
+                <th>Data</th>
+                <th>Horário</th>
+                <th>Artista</th>
+                <th>Local</th>
+                <th>Cachê</th>
+                <th>Pagamento</th>
+                <th class="text-end">Ações</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${pagina.empty}">
+                <td colspan="7" class="text-center text-muted py-4">Nenhum show encontrado.</td>
+            </tr>
+            <tr th:each="show : ${pagina.content}">
+                <td th:text="${#temporals.format(show.data, 'dd/MM/yyyy')}"></td>
+                <td th:text="${show.horario != null ? #temporals.format(show.horario, 'HH:mm') : '-'}"></td>
+                <td>
+                    <span th:text="${show.artista}"></span>
+                    <small class="text-muted d-block text-truncate" style="max-width: 260px;"
+                           th:if="${show.observacoes}" th:text="${show.observacoes}"></small>
+                </td>
+                <td th:text="${show.local}"></td>
+                <td th:text="${show.cache != null ? #numbers.formatCurrency(show.cache) : '-'}"></td>
+                <td>
+                    <span class="badge" th:classappend="${show.pago} ? 'bg-success' : 'bg-secondary'"
+                          th:text="${show.pago} ? 'Pago' : 'Não pago'"></span>
+                </td>
+                <td class="text-end text-nowrap">
+                    <a class="btn btn-sm btn-outline-primary" th:href="@{/shows/{id}/editar(id=${show.id})}">Editar</a>
+                    <form th:action="@{/shows/{id}/pagamento(id=${show.id})}" method="post" class="d-inline">
+                        <input type="hidden" name="filtros" th:value="${parametrosLista}">
+                        <button type="submit" class="btn btn-sm btn-outline-success"
+                                th:text="${show.pago} ? 'Marcar não pago' : 'Marcar pago'"></button>
+                    </form>
+                    <form th:action="@{/shows/{id}/excluir(id=${show.id})}" method="post" class="d-inline"
+                          onsubmit="return confirm('Excluir este show?');">
+                        <input type="hidden" name="filtros" th:value="${parametrosLista}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <nav th:if="${pagina.totalPages > 1}">
+        <ul class="pagination justify-content-center">
+            <li class="page-item" th:each="numero : ${#numbers.sequence(0, pagina.totalPages - 1)}"
+                th:classappend="${numero == pagina.number} ? 'active'">
+                <a class="page-link"
+                   th:href="@{/shows(page=${numero},mes=${filtro.mes ?: ''},ano=${filtro.ano ?: ''},situacaoPagamento=${filtro.situacaoPagamento ?: ''},observacoes=${filtro.observacoes ?: ''},local=${filtro.local ?: ''})}"
+                   th:text="${numero + 1}"></a>
+            </li>
+        </ul>
+    </nav>
+</main>
+</body>
+</html>

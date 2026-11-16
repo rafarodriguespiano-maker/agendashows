@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: header('Entrar')}"></head>
+<body class="bg-light">
+<div class="container py-5" style="max-width: 420px;">
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <h1 class="h4 mb-4 text-center">Agenda de Shows</h1>
+
+            <div th:if="${param.erro}" class="alert alert-danger">Usuário ou senha inválidos.</div>
+            <div th:if="${param.saiu}" class="alert alert-info">Você saiu do sistema.</div>
+
+            <form th:action="@{/entrar}" method="post">
+                <div class="mb-3">
+                    <label for="usuario" class="form-label">Usuário</label>
+                    <input type="text" id="usuario" name="username" class="form-control" required autofocus>
+                </div>
+                <div class="mb-3">
+                    <label for="senha" class="form-label">Senha</label>
+                    <input type="password" id="senha" name="password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Entrar</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
