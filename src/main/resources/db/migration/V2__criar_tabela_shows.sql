@@ -1,4 +1,4 @@
-CREATE TABLE show (
+CREATE TABLE shows (
     id BIGINT NOT NULL AUTO_INCREMENT,
     data DATE NOT NULL,
     artista VARCHAR(150) NOT NULL,
@@ -10,4 +10,4 @@ CREATE TABLE show (
     PRIMARY KEY (id)
 );
 
-CREATE INDEX idx_show_data ON show (data);
+CREATE INDEX idx_shows_data ON shows (data);

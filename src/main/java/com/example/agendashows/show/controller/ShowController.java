@@ -38,7 +38,7 @@ public class ShowController {
 
     @GetMapping
     public String listar(@ModelAttribute("filtro") ShowFilter filtro,
-                         @PageableDefault(sort = "data", direction = Sort.Direction.ASC) Pageable paginacao,
+                         @PageableDefault(size = 20, sort = "data", direction = Sort.Direction.ASC) Pageable paginacao,
                          HttpServletRequest requisicao,
                          Model model) {
         model.addAttribute("pagina", showService.listar(filtro, paginacao));
