@@ -43,6 +43,8 @@ e **MySQL**, com migrações de banco via **Flyway**.
 - **Interface responsiva** com Bootstrap 5 (tabela adaptada para telas pequenas com menu de ações).
 - **Validação de formulário** com mensagens em português.
 - **Usuário inicial** criado automaticamente na primeira execução, quando o banco está vazio.
+- **Relatório semanal por e-mail**: toda segunda-feira às 8h (fuso `America/Sao_Paulo`) a aplicação envia
+  para o usuário principal o relatório com os shows da semana (segunda a domingo), por SMTP configurável.
 - **Flash messages** para sucesso e erro das operações.
 
 ---
@@ -126,6 +128,7 @@ com `ddl-auto=validate`, ou seja, apenas valida o esquema.
 | `id` | `BIGINT` | PK, auto incremento |
 | `nome_usuario` | `VARCHAR(50)` | obrigatório, único |
 | `senha` | `VARCHAR(100)` | obrigatório, hash BCrypt |
+| `email` | `VARCHAR(254)` | opcional; destinatário do relatório semanal |
 | `ativo` | `BOOLEAN` | obrigatório, padrão `true` |
 
 ### Regras dos filtros de data
@@ -193,6 +196,16 @@ Arquivos em `src/main/resources`:
 | `DB_SENHA` | `123456` (dev) | Senha do banco (obrigatória em produção) |
 | `USUARIO_INICIAL` | `admin` (dev) | Nome do usuário criado no primeiro start |
 | `SENHA_INICIAL` | `admin` (dev) | Senha do usuário inicial (armazenada como BCrypt) |
+| `EMAIL_INICIAL` | vazio | E-mail do usuário principal; também preenche o usuário existente se estiver sem e-mail |
+| `MAIL_HOST` | vazio | Servidor SMTP; **sem ele o relatório semanal não é enviado** |
+| `MAIL_PORT` | `587` | Porta SMTP |
+| `MAIL_USUARIO` | vazio | Usuário de autenticação SMTP |
+| `MAIL_SENHA` | vazio | Senha (de app) do SMTP |
+| `MAIL_REMETENTE` | `MAIL_USUARIO` | Remetente do e-mail do relatório |
+| `MAIL_AUTH` | `true` | Habilita autenticação SMTP |
+| `MAIL_STARTTLS` | `true` | Habilita STARTTLS |
+| `EMAIL_RELATORIO_CRON` | `0 0 8 * * MON` | Cron do envio (segunda, 8h) |
+| `APP_FUSO` | `America/Sao_Paulo` | Fuso usado no agendamento e no período do relatório |
 | `SPRING_PROFILES_ACTIVE` | `dev` | Perfil ativo (`dev` ou `prod`) |
 | `PORT` | `8080` | Porta HTTP (usada por PaaS que injetam a porta) |
 | `DB_POOL_MAX` | `5` | Tamanho máximo do pool de conexões em produção |
@@ -277,6 +290,46 @@ docker exec -i mysql mysql -uroot -p123456 agendashows < sql/shows_inserts.sql
 
 ---
 
+## Relatório semanal por e-mail
+
+O agendador roda dentro da própria aplicação, sem serviço externo de cron: toda **segunda-feira às 8h**
+(horário de `APP_FUSO`, padrão `America/Sao_Paulo`) ele monta e envia um e-mail com os shows da semana,
+de **segunda a domingo** (as datas da segunda do envio até o domingo seguinte, inclusive).
+
+- O destinatário é o **usuário principal**: o primeiro usuário ativo, em ordem de cadastro, com `email`
+  preenchido na tabela `usuario`.
+- O e-mail lista data, horário, artista, local, cachê, situação do pagamento e observações, além do
+  total de shows, cachê total, pagos e pendentes.
+- Sem shows no período, o e-mail é enviado normalmente com "Nenhum show agendado para esta semana".
+- Se não houver usuário com e-mail, o envio é apenas registrado em log (`WARN`), sem afetar a aplicação.
+- O envio usa **SMTP configurado por variáveis de ambiente**. Sem `MAIL_HOST`, o agendador não é criado
+  (a aplicação sobe normalmente).
+
+### Configuração
+
+```dotenv
+EMAIL_INICIAL=seu-email@exemplo.com
+
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USUARIO=seu-email@exemplo.com
+MAIL_SENHA=sua-senha-de-app
+MAIL_REMETENTE=seu-email@exemplo.com
+```
+
+> No Gmail, ative a verificação em duas etapas e gere uma **senha de app**; a senha normal da conta não
+> funciona via SMTP. Para outros provedores, use host/porta indicados por eles (normalmente 587 com
+> STARTTLS). Para um servidor SMTP local sem autenticação, use `MAIL_AUTH=false` e `MAIL_STARTTLS=false`.
+
+- O e-mail do usuário existente pode ser preenchido via `EMAIL_INICIAL` no próximo start ou diretamente
+  no banco: `UPDATE usuario SET email = '...' WHERE nome_usuario = 'admin';`
+- Para desativar o envio, remova `MAIL_HOST`.
+- Para testar o horário, ajuste `EMAIL_RELATORIO_CRON` (sintaxe de cron do Spring, 6 campos) e reinicie.
+- Como o agendador fica na aplicação, mantenha **uma única instância** rodando (a sessão de login também
+  é em memória).
+
+---
+
 ## Deploy em produção
 
 ### Opção 1 — Railway (plano Hobby)
@@ -326,6 +379,12 @@ DB_USUARIO=${{MySQL.MYSQLUSER}}
 DB_SENHA=${{MySQL.MYSQLPASSWORD}}
 USUARIO_INICIAL=admin
 SENHA_INICIAL=<uma-senha-forte>
+EMAIL_INICIAL=<seu-email@exemplo.com>
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USUARIO=<seu-email@exemplo.com>
+MAIL_SENHA=<senha-de-app>
+MAIL_REMETENTE=<seu-email@exemplo.com>
 ```
 
 > As referências `${{MySQL.*}}` são resolvidas pelo Railway. Se o serviço de banco tiver outro
@@ -337,7 +396,7 @@ Depois, em **Settings → Networking → Generate Domain**, gere a URL pública.
 #### 3. Deploy
 
 O Railway reconstrói a cada push no GitHub. Acompanhe em **Deployments → Logs**: o Flyway aplica
-`V1`–`V3`, o Hibernate valida o schema e o usuário inicial é criado. Acesse a URL gerada.
+`V1`–`V4`, o Hibernate valida o schema e o usuário inicial é criado. Acesse a URL gerada.
 
 #### 4. Migrar os dados locais (opcional)
 
@@ -420,7 +479,7 @@ git clone https://github.com/rafarodriguespiano-maker/agendashows.git ~/agendash
 cd ~/agendashows
 
 cp .env.example .env
-nano .env   # APP_DOMAIN, DB_SENHA, DB_ROOT_SENHA, USUARIO_INICIAL e SENHA_INICIAL
+nano .env   # APP_DOMAIN, DB_*, USUARIO_INICIAL, SENHA_INICIAL, EMAIL_INICIAL e MAIL_*
 
 chmod +x deploy.sh backup.sh
 ./deploy.sh
@@ -434,6 +493,9 @@ docker compose -f docker-compose.prod.yml logs -f app
 
 Depois acesse `https://<APP_DOMAIN>` e entre com `USUARIO_INICIAL` / `SENHA_INICIAL`.
 
+> O `docker-compose.prod.yml` lê o `.env` também como `env_file` do container da aplicação, então as
+> variáveis `MAIL_*` e `EMAIL_INICIAL` definidas nele são repassadas automaticamente.
+>
 > O MySQL só aplica `DB_USUARIO` e `DB_SENHA` na primeira inicialização do volume. Se precisar
 > alterar a senha depois, use `ALTER USER` dentro do container ou recrie o volume (isso apaga os
 > dados). O mesmo vale para o usuário inicial: ele só é criado quando a tabela `usuario` está vazia.
@@ -482,13 +544,14 @@ agendashows/
     ├── main/
     │   ├── java/com/example/agendashows/
     │   │   ├── AgendashowsApplication.java
-    │   │   ├── config/SecurityConfig.java
+    │   │   ├── config/         # segurança e agendamento
+    │   │   ├── relatorio/      # relatório semanal por e-mail (job + templates)
     │   │   ├── show/...
     │   │   └── user/...
     │   └── resources/
     │       ├── application*.properties
-    │       ├── db/migration/   # V1 (usuario) e V2 (shows)
-    │       └── templates/      # login, listagem, formulário e fragmentos
+    │       ├── db/migration/   # V1–V4 (usuario e shows)
+    │       └── templates/      # login, listagem, formulário, fragmentos e e-mail
     └── test/
         ├── java/...            # testes de integração
         └── resources/application-test.properties

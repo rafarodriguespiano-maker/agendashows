@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="'Shows de ' + ${relatorio.periodo()}">Shows da semana</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#27272a;">
+<div style="max-width:680px;margin:0 auto;padding:24px 12px;">
+    <div style="background-color:#18181b;color:#fafafa;border-radius:8px 8px 0 0;padding:24px;">
+        <div style="font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#a1a1aa;">Agenda de Shows</div>
+        <h1 style="margin:8px 0 4px;font-size:22px;">Shows da semana</h1>
+        <div style="font-size:15px;color:#d4d4d8;" th:text="${relatorio.periodo()}">17/11/2026 a 23/11/2026</div>
+    </div>
+
+    <div style="background-color:#ffffff;padding:24px;">
+        <p style="margin:0 0 20px;font-size:15px;">
+            Olá, <strong th:text="${nomeUsuario}">usuário</strong>. Segue o resumo dos seus shows da semana:
+        </p>
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+               style="margin-bottom:20px;border-collapse:collapse;">
+            <tr>
+                <td style="padding:12px;background-color:#fafafa;border:1px solid #e4e4e7;text-align:center;">
+                    <div style="font-size:11px;color:#71717a;text-transform:uppercase;">Shows</div>
+                    <div style="font-size:20px;font-weight:bold;" th:text="${relatorio.quantidade()}">0</div>
+                </td>
+                <td style="padding:12px;background-color:#fafafa;border:1px solid #e4e4e7;text-align:center;">
+                    <div style="font-size:11px;color:#71717a;text-transform:uppercase;">Cachê total</div>
+                    <div style="font-size:20px;font-weight:bold;" th:text="${relatorio.cacheTotal()}">R$ 0,00</div>
+                </td>
+                <td style="padding:12px;background-color:#fafafa;border:1px solid #e4e4e7;text-align:center;">
+                    <div style="font-size:11px;color:#71717a;text-transform:uppercase;">Pagos / pendentes</div>
+                    <div style="font-size:20px;font-weight:bold;">
+                        <span th:text="${relatorio.quantidadePagas()}">0</span> /
+                        <span th:text="${relatorio.quantidadePendentes()}">0</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <div th:if="${relatorio.quantidade() == 0}"
+             style="padding:16px;background-color:#fafafa;border:1px dashed #d4d4d8;border-radius:6px;font-size:15px;">
+            Nenhum show agendado para esta semana.
+        </div>
+
+        <table th:if="${relatorio.quantidade() > 0}" width="100%" cellpadding="0" cellspacing="0"
+               style="border-collapse:collapse;font-size:14px;">
+            <thead>
+            <tr style="background-color:#fafafa;">
+                <th align="left" style="padding:10px 8px;border-bottom:2px solid #e4e4e7;">Data</th>
+                <th align="left" style="padding:10px 8px;border-bottom:2px solid #e4e4e7;">Horário</th>
+                <th align="left" style="padding:10px 8px;border-bottom:2px solid #e4e4e7;">Artista</th>
+                <th align="left" style="padding:10px 8px;border-bottom:2px solid #e4e4e7;">Local</th>
+                <th align="right" style="padding:10px 8px;border-bottom:2px solid #e4e4e7;">Cachê</th>
+                <th align="center" style="padding:10px 8px;border-bottom:2px solid #e4e4e7;">Situação</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="show : ${relatorio.shows()}">
+                <td style="padding:10px 8px;border-bottom:1px solid #f4f4f5;white-space:nowrap;"
+                    th:text="${show.data()}">seg, 17/11</td>
+                <td style="padding:10px 8px;border-bottom:1px solid #f4f4f5;white-space:nowrap;"
+                    th:text="${show.horario()}">20:00</td>
+                <td style="padding:10px 8px;border-bottom:1px solid #f4f4f5;font-weight:bold;"
+                    th:text="${show.artista()}">Artista</td>
+                <td style="padding:10px 8px;border-bottom:1px solid #f4f4f5;">
+                    <div th:text="${show.local()}">Local</div>
+                    <div th:if="${show.observacoes() != '—'}"
+                         style="color:#71717a;font-size:12px;margin-top:2px;"
+                         th:text="${'Obs.: ' + show.observacoes()}">Obs.:</div>
+                </td>
+                <td align="right" style="padding:10px 8px;border-bottom:1px solid #f4f4f5;white-space:nowrap;"
+                    th:text="${show.cache()}">R$ 0,00</td>
+                <td align="center" style="padding:10px 8px;border-bottom:1px solid #f4f4f5;white-space:nowrap;"
+                    th:text="${show.situacao()}"
+                    th:style="${show.situacao() == 'Pago'} ? 'color:#15803d;font-weight:bold;' : 'color:#b45309;font-weight:bold;'">
+                    Pendente
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div style="background-color:#fafafa;border-radius:0 0 8px 8px;border-top:1px solid #e4e4e7;padding:16px 24px;font-size:12px;color:#71717a;">
+        E-mail automático enviado toda segunda-feira às 8h pelo Agenda de Shows.
+    </div>
+</div>
+</body>
+</html>

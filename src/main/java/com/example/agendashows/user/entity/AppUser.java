@@ -27,6 +27,9 @@ public class AppUser {
     @Column(name = "senha", nullable = false, length = 100)
     private String senha;
 
+    @Column(name = "email", length = 254)
+    private String email;
+
     @Column(name = "ativo", nullable = false)
     private boolean ativo = true;
 }

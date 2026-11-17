@@ -12,6 +12,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificationExecutor<Show> {
 
+    List<Show> findByDataBetweenOrderByDataAscHorarioAsc(LocalDate inicio, LocalDate fim);
+
     /**
      * Agrega os totais do período. Os parâmetros de período são opcionais: quando nulos, não restringem a consulta.
      *
