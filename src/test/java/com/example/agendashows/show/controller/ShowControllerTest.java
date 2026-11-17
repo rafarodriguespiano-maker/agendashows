@@ -116,6 +116,19 @@ class ShowControllerTest {
 
     @Test
     @WithMockUser
+    void exibeDiaDaSemanaAbreviadoEmMaiusculo() throws Exception {
+        salvar(LocalDate.of(2026, 3, 10), "Banda", true);
+
+        mvc.perform(get("/shows"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("<th>Dia</th>")))
+                .andExpect(content().string(containsString(">TER<")))
+                .andExpect(content().string(containsString(">10/03<")))
+                .andExpect(content().string(containsString("data-bs-toggle=\"dropdown\"")));
+    }
+
+    @Test
+    @WithMockUser
     void carregaDataDoShowNoFormularioDeEdicao() throws Exception {
         Show show = salvar(LocalDate.of(2026, 3, 10), "Banda", false);
         show.setHorario(LocalTime.of(21, 30));
