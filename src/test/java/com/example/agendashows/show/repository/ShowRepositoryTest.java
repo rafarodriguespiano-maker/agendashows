@@ -61,6 +61,7 @@ class ShowRepositoryTest {
     @Test
     void filtraPorArtistaParcialSemDiferenciarMaiusculas() {
         ShowFilter filtro = new ShowFilter();
+        filtro.setSomenteFuturos(false);
         filtro.setArtista("banda b");
 
         assertThat(buscar(filtro)).hasSize(1);
@@ -84,12 +85,46 @@ class ShowRepositoryTest {
 
     @Test
     void pagina() {
-        Page<Show> pagina = showRepository.findAll(ShowSpecifications.comFiltros(new ShowFilter()),
+        ShowFilter filtro = new ShowFilter();
+        filtro.setSomenteFuturos(false);
+        Page<Show> pagina = showRepository.findAll(ShowSpecifications.comFiltros(filtro),
                 PageRequest.of(0, 2, Sort.by("data")));
 
         assertThat(pagina.getTotalElements()).isEqualTo(4);
         assertThat(pagina.getTotalPages()).isEqualTo(2);
         assertThat(pagina.getContent()).hasSize(2);
+    }
+
+    @Test
+    void filtraAPartirDoInicioDoMesCorrente() {
+        showRepository.deleteAll();
+        LocalDate inicioMes = LocalDate.now().withDayOfMonth(1);
+        showRepository.saveAll(List.of(
+                criar(inicioMes.minusDays(1), "Banda Passada", "Local", null, true),
+                criar(inicioMes, "Banda do Início do Mês", "Local", null, true),
+                criar(inicioMes.plusDays(1), "Banda Futura", "Local", null, true)));
+
+        ShowFilter filtro = new ShowFilter();
+        filtro.setSomenteFuturos(true);
+
+        assertThat(buscar(filtro)).extracting(Show::getArtista)
+                .containsExactlyInAnyOrder("Banda do Início do Mês", "Banda Futura");
+    }
+
+    @Test
+    void combinaSomenteDatasFuturasComMesEAno() {
+        showRepository.deleteAll();
+        LocalDate hoje = LocalDate.now();
+        LocalDate mesQueVem = hoje.plusMonths(1);
+        showRepository.saveAll(List.of(
+                criar(hoje.minusMonths(1), "Banda Passada", "Local", null, true),
+                criar(mesQueVem, "Banda Futura", "Local", null, true)));
+
+        ShowFilter filtro = filtro(mesQueVem.getMonthValue(), mesQueVem.getYear(), null, null, null);
+        filtro.setSomenteFuturos(true);
+
+        assertThat(buscar(filtro)).extracting(Show::getArtista)
+                .containsExactly("Banda Futura");
     }
 
     private List<Show> buscar(ShowFilter filtro) {
@@ -98,6 +133,7 @@ class ShowRepositoryTest {
 
     private ShowFilter filtro(Integer mes, Integer ano, StatusPagamento situacao, String observacoes, String local) {
         ShowFilter filtro = new ShowFilter();
+        filtro.setSomenteFuturos(false);
         filtro.setMes(mes);
         filtro.setAno(ano);
         filtro.setSituacaoPagamento(situacao);

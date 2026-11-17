@@ -57,12 +57,60 @@ class ShowControllerTest {
         salvar(LocalDate.of(2026, 3, 10), "Banda Visível", true);
         salvar(LocalDate.of(2026, 5, 10), "Banda Oculta", true);
 
-        mvc.perform(get("/shows").param("mes", "3").param("ano", "2026").param("situacaoPagamento", "PAGO"))
+        mvc.perform(get("/shows").param("mes", "3").param("ano", "2026").param("situacaoPagamento", "PAGO")
+                        .param("somenteFuturos", "false"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("shows/list"))
                 .andExpect(content().string(containsString("/shows/novo?mes=3&amp;ano=2026")))
                 .andExpect(content().string(containsString("Banda Visível")))
                 .andExpect(content().string(not(containsString("Banda Oculta"))));
+    }
+
+    @Test
+    @WithMockUser
+    void listaAPartirDoInicioDoMesCorrenteQuandoFiltroAtivo() throws Exception {
+        LocalDate inicioMes = LocalDate.now().withDayOfMonth(1);
+        salvar(inicioMes.minusDays(1), "Banda Passada", true);
+        salvar(inicioMes, "Banda do Início do Mês", true);
+        salvar(inicioMes.plusDays(1), "Banda Futura", true);
+
+        mvc.perform(get("/shows").param("somenteFuturos", "true"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("filtro", hasProperty("somenteFuturos", is(true))))
+                .andExpect(content().string(containsString("Mostrar somente shows do mês atual em diante")))
+                .andExpect(content().string(containsString("Banda do Início do Mês")))
+                .andExpect(content().string(containsString("Banda Futura")))
+                .andExpect(content().string(not(containsString("Banda Passada"))));
+    }
+
+    @Test
+    @WithMockUser
+    void marcaFiltroDeDatasPorPadraoEAplicaNaListagem() throws Exception {
+        LocalDate inicioMes = LocalDate.now().withDayOfMonth(1);
+        salvar(inicioMes.minusDays(1), "Banda Passada", true);
+        salvar(inicioMes, "Banda do Mês", true);
+
+        mvc.perform(get("/shows"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("filtro", hasProperty("somenteFuturos", is(true))))
+                .andExpect(content().string(containsString("name=\"somenteFuturos\"")))
+                .andExpect(content().string(containsString("checked=\"checked\"")))
+                .andExpect(content().string(containsString("Banda do Mês")))
+                .andExpect(content().string(not(containsString("Banda Passada"))));
+    }
+
+    @Test
+    @WithMockUser
+    void listaTodasAsDatasQuandoFiltroDeFuturosDesmarcado() throws Exception {
+        LocalDate hoje = LocalDate.now();
+        salvar(hoje.minusDays(1), "Banda Passada", true);
+        salvar(hoje.plusDays(1), "Banda Futura", true);
+
+        mvc.perform(get("/shows").param("somenteFuturos", "false"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("filtro", hasProperty("somenteFuturos", is(false))))
+                .andExpect(content().string(containsString("Banda Passada")))
+                .andExpect(content().string(containsString("Banda Futura")));
     }
 
     @Test
@@ -80,7 +128,7 @@ class ShowControllerTest {
         salvar(LocalDate.of(2026, 3, 10), "Banda Visível", true);
         salvar(LocalDate.of(2026, 5, 10), "Banda Oculta", true);
 
-        mvc.perform(get("/shows").param("mes", "3").param("ano", "2026"))
+        mvc.perform(get("/shows").param("mes", "3").param("ano", "2026").param("somenteFuturos", "false"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("filtro", hasProperty("mes", is(3))))
                 .andExpect(content().string(containsString("Banda Visível")))
@@ -119,7 +167,7 @@ class ShowControllerTest {
     void exibeDiaDaSemanaAbreviadoEmMaiusculo() throws Exception {
         salvar(LocalDate.of(2026, 3, 10), "Banda", true);
 
-        mvc.perform(get("/shows"))
+        mvc.perform(get("/shows").param("somenteFuturos", "false"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("<th>Dia</th>")))
                 .andExpect(content().string(containsString(">TER<")))

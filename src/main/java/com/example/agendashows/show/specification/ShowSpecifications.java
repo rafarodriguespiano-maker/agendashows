@@ -33,6 +33,12 @@ public final class ShowSpecifications {
                     cb.equal(cb.function("month", Integer.class, root.get("data")), mes));
         }
 
+        if (filtro.isSomenteFuturos()) {
+            LocalDate inicioMesCorrente = LocalDate.now().withDayOfMonth(1);
+            spec = spec.and((root, query, cb) ->
+                    cb.greaterThanOrEqualTo(root.get("data"), inicioMesCorrente));
+        }
+
         if (filtro.getSituacaoPagamento() != null) {
             boolean pago = filtro.getSituacaoPagamento() == StatusPagamento.PAGO;
             spec = spec.and((root, query, cb) -> cb.equal(root.get("pago"), pago));

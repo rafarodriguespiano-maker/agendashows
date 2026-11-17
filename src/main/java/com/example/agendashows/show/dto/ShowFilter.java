@@ -12,6 +12,7 @@ public class ShowFilter {
 
     private Integer mes;
     private Integer ano;
+    private boolean somenteFuturos = true;
     private StatusPagamento situacaoPagamento;
     private String artista;
     private String observacoes;
