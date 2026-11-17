@@ -72,9 +72,13 @@ class EstatisticasControllerTest {
                         new BigDecimal("0.00"),
                         new BigDecimal("750.00"),
                         new BigDecimal("1000.00"),
-                        new BigDecimal("500.00")))))
+                        new BigDecimal("500.00"),
+                        2,
+                        new BigDecimal("1500.00")))))
                 .andExpect(content().string(containsString("Estatísticas")))
                 .andExpect(content().string(containsString("Menor cachê")))
+                .andExpect(content().string(containsString("Cachê total (todos os shows)")))
+                .andExpect(content().string(containsString("Shows no período (todos)")))
                 .andExpect(content().string(containsString("Banda A")))
                 .andExpect(content().string(not(containsString("Banda B"))));
     }
@@ -117,6 +121,8 @@ class EstatisticasControllerTest {
                         new BigDecimal("0.00"),
                         new BigDecimal("500.00"),
                         new BigDecimal("500.00"),
+                        new BigDecimal("500.00"),
+                        1,
                         new BigDecimal("500.00")))))
                 .andExpect(content().string(containsString("Banda Atual")))
                 .andExpect(content().string(not(containsString("Banda Antiga"))));
@@ -142,7 +148,9 @@ class EstatisticasControllerTest {
                         new BigDecimal("0.00"),
                         new BigDecimal("150.00"),
                         new BigDecimal("200.00"),
-                        new BigDecimal("100.00")))));
+                        new BigDecimal("100.00"),
+                        2,
+                        new BigDecimal("300.00")))));
     }
 
     @Test
@@ -165,7 +173,9 @@ class EstatisticasControllerTest {
                         new BigDecimal("0.00"),
                         new BigDecimal("250.00"),
                         new BigDecimal("300.00"),
-                        new BigDecimal("200.00")))));
+                        new BigDecimal("200.00"),
+                        2,
+                        new BigDecimal("500.00")))));
     }
 
     @Test
@@ -186,6 +196,8 @@ class EstatisticasControllerTest {
                         new BigDecimal("0.00"),
                         new BigDecimal("0.00"),
                         new BigDecimal("0.00"),
+                        new BigDecimal("0.00"),
+                        0,
                         new BigDecimal("0.00")))))
                 .andExpect(model().attribute("ranking", is(List.of())))
                 .andExpect(content().string(containsString("Nenhum show encontrado no período.")));
@@ -209,6 +221,8 @@ class EstatisticasControllerTest {
                         new BigDecimal("0.00"),
                         new BigDecimal("0.00"),
                         new BigDecimal("0.00"),
+                        new BigDecimal("0.00"),
+                        1,
                         new BigDecimal("0.00")))))
                 .andExpect(model().attribute("ranking", is(List.of(
                         new ArtistaRanking("Banda Sem Cachê", 1, new BigDecimal("0.00"))))));
@@ -235,8 +249,10 @@ class EstatisticasControllerTest {
                         new BigDecimal("1000.00"),
                         new BigDecimal("500.00"),
                         new BigDecimal("500.00"),
-                        new BigDecimal("500.00")))))
-                .andExpect(content().string(containsString("Com pagamento mensal")));
+                        new BigDecimal("500.00"),
+                        2,
+                        new BigDecimal("1500.00")))))
+                .andExpect(content().string(containsString("Shows com pagamento mensal")));
     }
 
     @Test

@@ -41,7 +41,9 @@ public class EstatisticasService {
                 moeda(resumo.getCacheMensal()),
                 moeda(resumo.getCacheMedio()),
                 moeda(resumo.getMaiorCache()),
-                moeda(resumo.getMenorCache()));
+                moeda(resumo.getMenorCache()),
+                numero(resumo.getQuantidadeShowsGeral()),
+                moeda(resumo.getCacheGeral()));
     }
 
     @Transactional(readOnly = true)

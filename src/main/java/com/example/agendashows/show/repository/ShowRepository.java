@@ -16,7 +16,8 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
      * Agrega os totais do período. Os parâmetros de período são opcionais: quando nulos, não restringem a consulta.
      *
      * <p>Os totais gerais consideram apenas shows sem pagamento mensal; os campos de pagamento mensal
-     * ({@code quantidadeMensais} e {@code cacheMensal}) consideram apenas os marcados como mensais.</p>
+     * ({@code quantidadeMensais} e {@code cacheMensal}) consideram apenas os marcados como mensais.
+     * Já {@code quantidadeShowsGeral} e {@code cacheGeral} consideram todos os shows do período.</p>
      */
     @Query("""
             select sum(case when s.pagamentoMensal = false then 1 else 0 end) as quantidadeShows,
@@ -29,7 +30,9 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
                    sum(case when s.pagamentoMensal = true then s.cache end) as cacheMensal,
                    avg(case when s.pagamentoMensal = false then s.cache end) as cacheMedio,
                    max(case when s.pagamentoMensal = false then s.cache end) as maiorCache,
-                   min(case when s.pagamentoMensal = false then s.cache end) as menorCache
+                   min(case when s.pagamentoMensal = false then s.cache end) as menorCache,
+                   count(s) as quantidadeShowsGeral,
+                   sum(s.cache) as cacheGeral
             from Show s
             where (:inicio is null or s.data >= :inicio)
               and (:fim is null or s.data < :fim)
@@ -98,6 +101,10 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
         BigDecimal getMaiorCache();
 
         BigDecimal getMenorCache();
+
+        Long getQuantidadeShowsGeral();
+
+        BigDecimal getCacheGeral();
     }
 
     interface ArtistaRankingProjection {

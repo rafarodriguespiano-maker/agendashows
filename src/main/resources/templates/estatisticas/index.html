@@ -35,10 +35,26 @@
     </div>
 
     <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase">Cachê total (todos os shows)</div>
+                    <div class="fs-3 fw-semibold" th:text="${#numbers.formatCurrency(resumo.cacheGeral)}">R$ 0,00</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase">Shows no período (todos)</div>
+                    <div class="fs-3 fw-semibold" th:text="${resumo.quantidadeShowsGeral}">0</div>
+                </div>
+            </div>
+        </div>
         <div class="col-12 col-sm-6 col-lg-3">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="text-muted small text-uppercase">Shows no período (pagamento à vista)</div>
+                    <div class="text-muted small text-uppercase">Shows com pagamento à vista</div>
                     <div class="fs-3 fw-semibold" th:text="${resumo.quantidadeShows}">0</div>
                     <div class="text-muted small">
                         <span th:text="${resumo.quantidadePagas}">0</span> pagos ·

@@ -16,5 +16,7 @@ public record ResumoShows(
         BigDecimal cacheMensal,
         BigDecimal cacheMedio,
         BigDecimal maiorCache,
-        BigDecimal menorCache) {
+        BigDecimal menorCache,
+        long quantidadeShowsGeral,
+        BigDecimal cacheGeral) {
 }
