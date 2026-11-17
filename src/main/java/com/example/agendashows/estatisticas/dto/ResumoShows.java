@@ -4,19 +4,13 @@ import java.math.BigDecimal;
 
 /**
  * Totais agregados dos shows de um período.
+ *
+ * <p>{@code aVista} e {@code mensal} separam as estatísticas por forma de pagamento;
+ * {@code quantidadeGeral} e {@code cacheGeral} somam todos os shows do período.</p>
  */
 public record ResumoShows(
-        long quantidadeShows,
-        BigDecimal cacheTotal,
-        BigDecimal cachePago,
-        BigDecimal cachePendente,
-        long quantidadePagas,
-        long quantidadePendentes,
-        long quantidadeMensais,
-        BigDecimal cacheMensal,
-        BigDecimal cacheMedio,
-        BigDecimal maiorCache,
-        BigDecimal menorCache,
-        long quantidadeShowsGeral,
+        ResumoPagamento aVista,
+        ResumoPagamento mensal,
+        long quantidadeGeral,
         BigDecimal cacheGeral) {
 }

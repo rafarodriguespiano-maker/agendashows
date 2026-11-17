@@ -15,8 +15,8 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
     /**
      * Agrega os totais do período. Os parâmetros de período são opcionais: quando nulos, não restringem a consulta.
      *
-     * <p>Os totais gerais consideram apenas shows sem pagamento mensal; os campos de pagamento mensal
-     * ({@code quantidadeMensais} e {@code cacheMensal}) consideram apenas os marcados como mensais.
+     * <p>Os campos sem sufixo consideram os shows sem pagamento mensal (pagamento à vista);
+     * os campos iniciados por {@code mensal} consideram apenas os shows com pagamento mensal.
      * Já {@code quantidadeShowsGeral} e {@code cacheGeral} consideram todos os shows do período.</p>
      */
     @Query("""
@@ -26,11 +26,18 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
                    sum(case when s.pagamentoMensal = false and s.pago = false then s.cache end) as cachePendente,
                    sum(case when s.pagamentoMensal = false and s.pago = true then 1 else 0 end) as quantidadePagas,
                    sum(case when s.pagamentoMensal = false and s.pago = false then 1 else 0 end) as quantidadePendentes,
-                   sum(case when s.pagamentoMensal = true then 1 else 0 end) as quantidadeMensais,
-                   sum(case when s.pagamentoMensal = true then s.cache end) as cacheMensal,
                    avg(case when s.pagamentoMensal = false then s.cache end) as cacheMedio,
                    max(case when s.pagamentoMensal = false then s.cache end) as maiorCache,
                    min(case when s.pagamentoMensal = false then s.cache end) as menorCache,
+                   sum(case when s.pagamentoMensal = true then 1 else 0 end) as quantidadeMensais,
+                   sum(case when s.pagamentoMensal = true and s.pago = true then 1 else 0 end) as quantidadeMensaisPagas,
+                   sum(case when s.pagamentoMensal = true and s.pago = false then 1 else 0 end) as quantidadeMensaisPendentes,
+                   sum(case when s.pagamentoMensal = true then s.cache end) as cacheMensal,
+                   sum(case when s.pagamentoMensal = true and s.pago = true then s.cache end) as cacheMensalPago,
+                   sum(case when s.pagamentoMensal = true and s.pago = false then s.cache end) as cacheMensalPendente,
+                   avg(case when s.pagamentoMensal = true then s.cache end) as cacheMensalMedio,
+                   max(case when s.pagamentoMensal = true then s.cache end) as maiorCacheMensal,
+                   min(case when s.pagamentoMensal = true then s.cache end) as menorCacheMensal,
                    count(s) as quantidadeShowsGeral,
                    sum(s.cache) as cacheGeral
             from Show s
@@ -94,7 +101,21 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
 
         Long getQuantidadeMensais();
 
+        Long getQuantidadeMensaisPagas();
+
+        Long getQuantidadeMensaisPendentes();
+
         BigDecimal getCacheMensal();
+
+        BigDecimal getCacheMensalPago();
+
+        BigDecimal getCacheMensalPendente();
+
+        Double getCacheMensalMedio();
+
+        BigDecimal getMaiorCacheMensal();
+
+        BigDecimal getMenorCacheMensal();
 
         Double getCacheMedio();
 

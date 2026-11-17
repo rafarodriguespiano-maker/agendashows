@@ -2,6 +2,7 @@ package com.example.agendashows.estatisticas.service;
 
 import com.example.agendashows.estatisticas.dto.ArtistaRanking;
 import com.example.agendashows.estatisticas.dto.PeriodoFilter;
+import com.example.agendashows.estatisticas.dto.ResumoPagamento;
 import com.example.agendashows.estatisticas.dto.ResumoShows;
 import com.example.agendashows.show.entity.Show;
 import com.example.agendashows.show.repository.ShowRepository;
@@ -31,17 +32,26 @@ public class EstatisticasService {
         ResumoPeriodoProjection resumo = showRepository.resumirPeriodo(periodo.inicio(), periodo.fim(), periodo.mes());
 
         return new ResumoShows(
-                numero(resumo.getQuantidadeShows()),
-                moeda(resumo.getCacheTotal()),
-                moeda(resumo.getCachePago()),
-                moeda(resumo.getCachePendente()),
-                numero(resumo.getQuantidadePagas()),
-                numero(resumo.getQuantidadePendentes()),
-                numero(resumo.getQuantidadeMensais()),
-                moeda(resumo.getCacheMensal()),
-                moeda(resumo.getCacheMedio()),
-                moeda(resumo.getMaiorCache()),
-                moeda(resumo.getMenorCache()),
+                new ResumoPagamento(
+                        numero(resumo.getQuantidadeShows()),
+                        numero(resumo.getQuantidadePagas()),
+                        numero(resumo.getQuantidadePendentes()),
+                        moeda(resumo.getCacheTotal()),
+                        moeda(resumo.getCachePago()),
+                        moeda(resumo.getCachePendente()),
+                        moeda(resumo.getCacheMedio()),
+                        moeda(resumo.getMaiorCache()),
+                        moeda(resumo.getMenorCache())),
+                new ResumoPagamento(
+                        numero(resumo.getQuantidadeMensais()),
+                        numero(resumo.getQuantidadeMensaisPagas()),
+                        numero(resumo.getQuantidadeMensaisPendentes()),
+                        moeda(resumo.getCacheMensal()),
+                        moeda(resumo.getCacheMensalPago()),
+                        moeda(resumo.getCacheMensalPendente()),
+                        moeda(resumo.getCacheMensalMedio()),
+                        moeda(resumo.getMaiorCacheMensal()),
+                        moeda(resumo.getMenorCacheMensal())),
                 numero(resumo.getQuantidadeShowsGeral()),
                 moeda(resumo.getCacheGeral()));
     }

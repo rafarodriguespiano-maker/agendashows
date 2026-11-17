@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="cartoes(resumo)" class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase">Shows no período</div>
+                <div class="fs-3 fw-semibold" th:text="${resumo.quantidade}">0</div>
+                <div class="text-muted small">
+                    <span th:text="${resumo.quantidadePagas}">0</span> pagos ·
+                    <span th:text="${resumo.quantidadePendentes}">0</span> pendentes
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase">Cachê total</div>
+                <div class="fs-3 fw-semibold" th:text="${#numbers.formatCurrency(resumo.cacheTotal)}">R$ 0,00</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase">Cachê pago</div>
+                <div class="fs-3 fw-semibold text-success" th:text="${#numbers.formatCurrency(resumo.cachePago)}">R$ 0,00</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase">Cachê pendente</div>
+                <div class="fs-3 fw-semibold text-danger" th:text="${#numbers.formatCurrency(resumo.cachePendente)}">R$ 0,00</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase">Cachê médio</div>
+                <div class="fs-3 fw-semibold" th:text="${#numbers.formatCurrency(resumo.cacheMedio)}">R$ 0,00</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase">Maior cachê</div>
+                <div class="fs-3 fw-semibold" th:text="${#numbers.formatCurrency(resumo.maiorCache)}">R$ 0,00</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted small text-uppercase">Menor cachê</div>
+                <div class="fs-3 fw-semibold" th:text="${#numbers.formatCurrency(resumo.menorCache)}">R$ 0,00</div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

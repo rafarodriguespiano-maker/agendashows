@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import com.example.agendashows.estatisticas.dto.ArtistaRanking;
+import com.example.agendashows.estatisticas.dto.ResumoPagamento;
 import com.example.agendashows.estatisticas.dto.ResumoShows;
 import com.example.agendashows.show.entity.Show;
 import com.example.agendashows.show.repository.ShowRepository;
@@ -62,23 +63,19 @@ class EstatisticasControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("estatisticas/index"))
                 .andExpect(model().attribute("resumo", is(new ResumoShows(
+                        pagamento(2, 1, 1, "1500.00", "1000.00", "500.00", "750.00", "1000.00", "500.00"),
+                        zerado(),
                         2,
-                        new BigDecimal("1500.00"),
-                        new BigDecimal("1000.00"),
-                        new BigDecimal("500.00"),
-                        1,
-                        1,
-                        0,
-                        new BigDecimal("0.00"),
-                        new BigDecimal("750.00"),
-                        new BigDecimal("1000.00"),
-                        new BigDecimal("500.00"),
-                        2,
-                        new BigDecimal("1500.00")))))
+                        moeda("1500.00")))))
                 .andExpect(content().string(containsString("Estatísticas")))
+                .andExpect(content().string(containsString("Pagamento à vista")))
+                .andExpect(content().string(containsString("Pagamento mensal")))
+                .andExpect(content().string(containsString("Todos os shows")))
                 .andExpect(content().string(containsString("Menor cachê")))
-                .andExpect(content().string(containsString("Cachê total (todos os shows)")))
-                .andExpect(content().string(containsString("Shows no período (todos)")))
+                .andExpect(content().string(containsString("Cachê total")))
+                .andExpect(content().string(containsString("Shows no período")))
+                .andExpect(content().string(not(containsString("(pagamento à vista)"))))
+                .andExpect(content().string(not(containsString("(pagamento mensal)"))))
                 .andExpect(content().string(containsString("Banda A")))
                 .andExpect(content().string(not(containsString("Banda B"))));
     }
@@ -111,19 +108,10 @@ class EstatisticasControllerTest {
                 .andExpect(model().attribute("filtro", hasProperty("mes", is(hoje.getMonthValue()))))
                 .andExpect(model().attribute("filtro", hasProperty("ano", is(hoje.getYear()))))
                 .andExpect(model().attribute("resumo", is(new ResumoShows(
+                        pagamento(1, 1, 0, "500.00", "500.00", "0.00", "500.00", "500.00", "500.00"),
+                        zerado(),
                         1,
-                        new BigDecimal("500.00"),
-                        new BigDecimal("500.00"),
-                        new BigDecimal("0.00"),
-                        1,
-                        0,
-                        0,
-                        new BigDecimal("0.00"),
-                        new BigDecimal("500.00"),
-                        new BigDecimal("500.00"),
-                        new BigDecimal("500.00"),
-                        1,
-                        new BigDecimal("500.00")))))
+                        moeda("500.00")))))
                 .andExpect(content().string(containsString("Banda Atual")))
                 .andExpect(content().string(not(containsString("Banda Antiga"))));
     }
@@ -138,19 +126,10 @@ class EstatisticasControllerTest {
         mvc.perform(get("/estatisticas").param("mes", "3"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("resumo", is(new ResumoShows(
+                        pagamento(2, 2, 0, "300.00", "300.00", "0.00", "150.00", "200.00", "100.00"),
+                        zerado(),
                         2,
-                        new BigDecimal("300.00"),
-                        new BigDecimal("300.00"),
-                        new BigDecimal("0.00"),
-                        2,
-                        0,
-                        0,
-                        new BigDecimal("0.00"),
-                        new BigDecimal("150.00"),
-                        new BigDecimal("200.00"),
-                        new BigDecimal("100.00"),
-                        2,
-                        new BigDecimal("300.00")))));
+                        moeda("300.00")))));
     }
 
     @Test
@@ -163,19 +142,10 @@ class EstatisticasControllerTest {
         mvc.perform(get("/estatisticas").param("ano", "2026"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("resumo", is(new ResumoShows(
+                        pagamento(2, 2, 0, "500.00", "500.00", "0.00", "250.00", "300.00", "200.00"),
+                        zerado(),
                         2,
-                        new BigDecimal("500.00"),
-                        new BigDecimal("500.00"),
-                        new BigDecimal("0.00"),
-                        2,
-                        0,
-                        0,
-                        new BigDecimal("0.00"),
-                        new BigDecimal("250.00"),
-                        new BigDecimal("300.00"),
-                        new BigDecimal("200.00"),
-                        2,
-                        new BigDecimal("500.00")))));
+                        moeda("500.00")))));
     }
 
     @Test
@@ -186,19 +156,10 @@ class EstatisticasControllerTest {
         mvc.perform(get("/estatisticas").param("mes", "3").param("ano", "2026"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("resumo", is(new ResumoShows(
+                        zerado(),
+                        zerado(),
                         0,
-                        new BigDecimal("0.00"),
-                        new BigDecimal("0.00"),
-                        new BigDecimal("0.00"),
-                        0,
-                        0,
-                        0,
-                        new BigDecimal("0.00"),
-                        new BigDecimal("0.00"),
-                        new BigDecimal("0.00"),
-                        new BigDecimal("0.00"),
-                        0,
-                        new BigDecimal("0.00")))))
+                        moeda("0.00")))))
                 .andExpect(model().attribute("ranking", is(List.of())))
                 .andExpect(content().string(containsString("Nenhum show encontrado no período.")));
     }
@@ -211,19 +172,10 @@ class EstatisticasControllerTest {
         mvc.perform(get("/estatisticas").param("mes", "3").param("ano", "2026"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("resumo", is(new ResumoShows(
+                        pagamento(1, 0, 1, "0.00", "0.00", "0.00", "0.00", "0.00", "0.00"),
+                        zerado(),
                         1,
-                        new BigDecimal("0.00"),
-                        new BigDecimal("0.00"),
-                        new BigDecimal("0.00"),
-                        0,
-                        1,
-                        0,
-                        new BigDecimal("0.00"),
-                        new BigDecimal("0.00"),
-                        new BigDecimal("0.00"),
-                        new BigDecimal("0.00"),
-                        1,
-                        new BigDecimal("0.00")))))
+                        moeda("0.00")))))
                 .andExpect(model().attribute("ranking", is(List.of(
                         new ArtistaRanking("Banda Sem Cachê", 1, new BigDecimal("0.00"))))));
     }
@@ -239,20 +191,11 @@ class EstatisticasControllerTest {
         mvc.perform(get("/estatisticas").param("mes", "3").param("ano", "2026"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("resumo", is(new ResumoShows(
-                        1,
-                        new BigDecimal("500.00"),
-                        new BigDecimal("500.00"),
-                        new BigDecimal("0.00"),
-                        1,
-                        0,
-                        1,
-                        new BigDecimal("1000.00"),
-                        new BigDecimal("500.00"),
-                        new BigDecimal("500.00"),
-                        new BigDecimal("500.00"),
+                        pagamento(1, 1, 0, "500.00", "500.00", "0.00", "500.00", "500.00", "500.00"),
+                        pagamento(1, 0, 1, "1000.00", "0.00", "1000.00", "1000.00", "1000.00", "1000.00"),
                         2,
-                        new BigDecimal("1500.00")))))
-                .andExpect(content().string(containsString("Shows com pagamento mensal")));
+                        moeda("1500.00")))))
+                .andExpect(content().string(containsString("Pagamento mensal")));
     }
 
     @Test
@@ -286,6 +229,22 @@ class EstatisticasControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("proximos", is(List.of())))
                 .andExpect(content().string(containsString("Nenhum show futuro no período.")));
+    }
+
+    private static ResumoPagamento pagamento(long quantidade, long pagas, long pendentes,
+                                             String cacheTotal, String cachePago, String cachePendente,
+                                             String cacheMedio, String maiorCache, String menorCache) {
+        return new ResumoPagamento(quantidade, pagas, pendentes,
+                moeda(cacheTotal), moeda(cachePago), moeda(cachePendente),
+                moeda(cacheMedio), moeda(maiorCache), moeda(menorCache));
+    }
+
+    private static ResumoPagamento zerado() {
+        return pagamento(0, 0, 0, "0.00", "0.00", "0.00", "0.00", "0.00", "0.00");
+    }
+
+    private static BigDecimal moeda(String valor) {
+        return new BigDecimal(valor);
     }
 
     private Show salvar(LocalDate data, String artista, String cache, boolean pago) {

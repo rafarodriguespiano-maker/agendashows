@@ -34,95 +34,31 @@
         </div>
     </div>
 
+    <h2 class="h5 mt-4 mb-3">Todos os shows</h2>
     <div class="row g-3 mb-4">
         <div class="col-12 col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="text-muted small text-uppercase">Cachê total (todos os shows)</div>
-                    <div class="fs-3 fw-semibold" th:text="${#numbers.formatCurrency(resumo.cacheGeral)}">R$ 0,00</div>
+                    <div class="text-muted small text-uppercase">Shows no período</div>
+                    <div class="fs-3 fw-semibold" th:text="${resumo.quantidadeGeral}">0</div>
                 </div>
             </div>
         </div>
         <div class="col-12 col-md-6">
             <div class="card shadow-sm h-100">
                 <div class="card-body">
-                    <div class="text-muted small text-uppercase">Shows no período (todos)</div>
-                    <div class="fs-3 fw-semibold" th:text="${resumo.quantidadeShowsGeral}">0</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small text-uppercase">Shows com pagamento à vista</div>
-                    <div class="fs-3 fw-semibold" th:text="${resumo.quantidadeShows}">0</div>
-                    <div class="text-muted small">
-                        <span th:text="${resumo.quantidadePagas}">0</span> pagos ·
-                        <span th:text="${resumo.quantidadePendentes}">0</span> pendentes
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small text-uppercase">Shows com pagamento mensal</div>
-                    <div class="fs-3 fw-semibold" th:text="${resumo.quantidadeMensais}">0</div>
-                    <div class="text-muted small">
-                        Cachê: <span th:text="${#numbers.formatCurrency(resumo.cacheMensal)}">R$ 0,00</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small text-uppercase">Cachê total (pagamento à vista)</div>
-                    <div class="fs-3 fw-semibold" th:text="${#numbers.formatCurrency(resumo.cacheTotal)}">R$ 0,00</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small text-uppercase">Cachê pago (pagamento à vista)</div>
-                    <div class="fs-3 fw-semibold text-success" th:text="${#numbers.formatCurrency(resumo.cachePago)}">R$ 0,00</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small text-uppercase">Cachê pendente (pagamento à vista)</div>
-                    <div class="fs-3 fw-semibold text-danger" th:text="${#numbers.formatCurrency(resumo.cachePendente)}">R$ 0,00</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small text-uppercase">Cachê médio (pagamento à vista)</div>
-                    <div class="fs-3 fw-semibold" th:text="${#numbers.formatCurrency(resumo.cacheMedio)}">R$ 0,00</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small text-uppercase">Maior cachê (pagamento à vista)</div>
-                    <div class="fs-3 fw-semibold" th:text="${#numbers.formatCurrency(resumo.maiorCache)}">R$ 0,00</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small text-uppercase">Menor cachê (pagamento à vista)</div>
-                    <div class="fs-3 fw-semibold" th:text="${#numbers.formatCurrency(resumo.menorCache)}">R$ 0,00</div>
+                    <div class="text-muted small text-uppercase">Cachê total</div>
+                    <div class="fs-3 fw-semibold" th:text="${#numbers.formatCurrency(resumo.cacheGeral)}">R$ 0,00</div>
                 </div>
             </div>
         </div>
     </div>
+
+    <h2 class="h5 mt-4 mb-3">Pagamento à vista</h2>
+    <div th:replace="~{estatisticas/fragments :: cartoes(${resumo.aVista})}"></div>
+
+    <h2 class="h5 mt-4 mb-3">Pagamento mensal</h2>
+    <div th:replace="~{estatisticas/fragments :: cartoes(${resumo.mensal})}"></div>
 
     <div class="card shadow-sm">
         <div class="card-header bg-white">
