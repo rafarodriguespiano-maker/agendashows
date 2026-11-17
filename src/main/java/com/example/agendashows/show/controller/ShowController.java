@@ -1,5 +1,6 @@
 package com.example.agendashows.show.controller;
 
+import com.example.agendashows.common.Meses;
 import com.example.agendashows.show.dto.ShowFilter;
 import com.example.agendashows.show.dto.ShowForm;
 import com.example.agendashows.show.entity.enums.StatusPagamento;
@@ -21,20 +22,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
-import java.time.Month;
-import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
 
 @Controller
 @RequestMapping("/shows")
 @RequiredArgsConstructor
 public class ShowController {
 
-    private static final Locale LOCALE_PT_BR = Locale.of("pt", "BR");
     private static final String VIEW_FORMULARIO = "shows/form";
     private static final String FLASH_MENSAGEM = "mensagem";
     private static final String FLASH_ERRO = "erro";
@@ -48,7 +44,7 @@ public class ShowController {
                          HttpServletRequest requisicao,
                          Model model) {
         model.addAttribute("pagina", showService.listar(filtro, paginacao));
-        model.addAttribute("meses", nomesDosMeses());
+        model.addAttribute("meses", Meses.nomes());
         model.addAttribute("situacoes", StatusPagamento.values());
         model.addAttribute("parametrosLista", requisicao.getQueryString());
         adicionarFiltroAoModelo(filtro.getMes(), filtro.getAno(), model);
@@ -175,12 +171,4 @@ public class ShowController {
         }
     }
 
-    private Map<Integer, String> nomesDosMeses() {
-        Map<Integer, String> meses = new TreeMap<>();
-        for (Month mes : Month.values()) {
-            String nome = mes.getDisplayName(TextStyle.FULL, LOCALE_PT_BR);
-            meses.put(mes.getValue(), nome.substring(0, 1).toUpperCase(LOCALE_PT_BR) + nome.substring(1));
-        }
-        return meses;
-    }
 }
