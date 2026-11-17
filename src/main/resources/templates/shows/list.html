@@ -80,7 +80,8 @@
             <tr th:if="${pagina.empty}">
                 <td colspan="8" class="text-center text-muted py-4">Nenhum show encontrado.</td>
             </tr>
-            <tr th:each="show, iter : ${pagina.content}">
+            <tr th:each="show, iter : ${pagina.content}"
+                th:classappend="${show.passado} ? 'show-passado'">
                 <td class="d-none d-lg-table-cell text-muted"
                     th:text="${pagina.number * pagina.size + iter.index + 1}"></td>
                 <td class="d-none d-lg-table-cell" th:text="${#strings.toUpperCase(#strings.substring(#temporals.format(show.data, 'EEE'), 0, 3))}"></td>

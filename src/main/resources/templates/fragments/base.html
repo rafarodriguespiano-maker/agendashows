@@ -13,6 +13,15 @@
             overflow-wrap: anywhere;
         }
 
+        /* Shows já ocorridos: esmaecidos para destacar os próximos */
+        tr.show-passado > td {
+            opacity: 0.5;
+        }
+
+        tr.show-passado:hover > td {
+            opacity: 0.85;
+        }
+
         @media (min-width: 992px) {
             .obs-show {
                 white-space: nowrap;

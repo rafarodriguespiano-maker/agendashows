@@ -47,4 +47,9 @@ public class Show {
 
     @Column(name = "pagamento_mensal", nullable = false)
     private boolean pagamentoMensal;
+
+    // Show ocorrido em data anterior a hoje; os de hoje permanecem em destaque.
+    public boolean isPassado() {
+        return data != null && data.isBefore(LocalDate.now());
+    }
 }
