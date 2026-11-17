@@ -4,7 +4,7 @@
 <body class="bg-light">
 <nav th:replace="~{fragments/base :: navbar}"></nav>
 
-<main class="container py-4">
+<main class="container-lg py-4">
     <div th:replace="~{fragments/base :: messages}"></div>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -68,7 +68,7 @@
             <table class="table table-hover align-middle mb-0">
                 <thead>
                 <tr>
-                    <th class="d-none d-md-table-cell">#</th>
+                    <th class="d-none d-lg-table-cell">#</th>
                     <th>Artista</th>
                     <th class="text-end">Shows</th>
                     <th class="text-end">Cachê acumulado</th>
@@ -79,7 +79,7 @@
                     <td colspan="4" class="text-center text-muted py-4">Nenhum show encontrado no período.</td>
                 </tr>
                 <tr th:each="item, iter : ${ranking}">
-                    <td class="d-none d-md-table-cell text-muted" th:text="${iter.count}"></td>
+                    <td class="d-none d-lg-table-cell text-muted" th:text="${iter.count}"></td>
                     <td th:text="${item.artista}"></td>
                     <td class="text-end" th:text="${item.quantidadeShows}"></td>
                     <td class="text-end" th:text="${#numbers.formatCurrency(item.cacheTotal)}"></td>
@@ -97,12 +97,12 @@
             <table class="table table-hover align-middle mb-0">
                 <thead>
                 <tr>
-                    <th class="d-none d-md-table-cell">Dia</th>
+                    <th class="d-none d-lg-table-cell">Dia</th>
                     <th>Data</th>
                     <th>Artista</th>
                     <th>Local</th>
-                    <th class="d-none d-md-table-cell">Horário</th>
-                    <th class="d-none d-md-table-cell text-end">Cachê</th>
+                    <th class="d-none d-lg-table-cell">Horário</th>
+                    <th class="d-none d-lg-table-cell text-end">Cachê</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -110,12 +110,12 @@
                     <td colspan="6" class="text-center text-muted py-4">Nenhum show futuro no período.</td>
                 </tr>
                 <tr th:each="show : ${proximos}">
-                    <td class="d-none d-md-table-cell" th:text="${#strings.toUpperCase(#strings.substring(#temporals.format(show.data, 'EEE'), 0, 3))}"></td>
+                    <td class="d-none d-lg-table-cell" th:text="${#strings.toUpperCase(#strings.substring(#temporals.format(show.data, 'EEE'), 0, 3))}"></td>
                     <td>
-                        <span class="d-md-none d-block fw-semibold"
+                        <span class="d-lg-none d-block fw-semibold"
                               th:text="${#strings.toUpperCase(#strings.substring(#temporals.format(show.data, 'EEE'), 0, 3))}"></span>
                         <span th:text="${#temporals.format(show.data, 'dd/MM')}"></span>
-                        <span class="d-md-none d-block small text-muted"
+                        <span class="d-lg-none d-block small text-muted"
                               th:if="${show.horario != null}" th:text="${#temporals.format(show.horario, 'HH:mm')}"></span>
                     </td>
                     <td>
@@ -126,14 +126,14 @@
                     </td>
                     <td>
                         <span th:text="${show.local}"></span>
-                        <span class="d-md-none d-block small mt-1 text-nowrap">
+                        <span class="d-lg-none d-block small mt-1 text-nowrap">
                             <span class="text-muted" th:text="${show.cache != null ? #numbers.formatCurrency(show.cache) : '-'}"></span>
                             <span class="badge ms-1 align-middle" th:classappend="${show.pago} ? 'bg-success' : 'bg-secondary'"
                                   th:text="${show.pago} ? 'Pago' : 'Não pago'"></span>
                         </span>
                     </td>
-                    <td class="d-none d-md-table-cell" th:text="${show.horario != null ? #temporals.format(show.horario, 'HH:mm') : '-'}"></td>
-                    <td class="d-none d-md-table-cell text-end">
+                    <td class="d-none d-lg-table-cell" th:text="${show.horario != null ? #temporals.format(show.horario, 'HH:mm') : '-'}"></td>
+                    <td class="d-none d-lg-table-cell text-end">
                         <span class="d-block" th:text="${show.cache != null ? #numbers.formatCurrency(show.cache) : '-'}"></span>
                         <span class="badge mt-1" th:classappend="${show.pago} ? 'bg-success' : 'bg-secondary'"
                               th:text="${show.pago} ? 'Pago' : 'Não pago'"></span>

@@ -13,7 +13,7 @@
             overflow-wrap: anywhere;
         }
 
-        @media (min-width: 768px) {
+        @media (min-width: 992px) {
             .obs-show {
                 white-space: nowrap;
                 overflow: hidden;
@@ -24,7 +24,7 @@
 </head>
 <body>
 <nav th:fragment="navbar" class="navbar navbar-expand navbar-dark bg-dark">
-    <div class="container">
+    <div class="container-lg">
         <a class="navbar-brand" th:href="@{/estatisticas}">Agenda de Shows</a>
         <div class="navbar-nav me-auto">
             <a class="nav-link" th:href="@{/shows(mes=${mes},ano=${ano})}">Shows</a>
