@@ -67,50 +67,71 @@
             <thead>
             <tr>
                 <th class="d-none d-md-table-cell">#</th>
-                <th>Dia</th>
+                <th class="d-none d-md-table-cell">Dia</th>
                 <th>Data</th>
                 <th class="d-none d-md-table-cell">Horário</th>
                 <th>Artista</th>
                 <th>Local</th>
                 <th class="d-none d-md-table-cell">Cachê</th>
-                <th class="d-none d-md-table-cell">Pagamento</th>
                 <th class="text-end">Ações</th>
             </tr>
             </thead>
             <tbody>
             <tr th:if="${pagina.empty}">
-                <td colspan="9" class="text-center text-muted py-4">Nenhum show encontrado.</td>
+                <td colspan="8" class="text-center text-muted py-4">Nenhum show encontrado.</td>
             </tr>
             <tr th:each="show, iter : ${pagina.content}">
                 <td class="d-none d-md-table-cell text-muted"
                     th:text="${pagina.number * pagina.size + iter.index + 1}"></td>
-                <td th:text="${#strings.toUpperCase(#strings.substring(#temporals.format(show.data, 'EEE'), 0, 3))}"></td>
-                <td th:text="${#temporals.format(show.data, 'dd/MM')}"></td>
+                <td class="d-none d-md-table-cell" th:text="${#strings.toUpperCase(#strings.substring(#temporals.format(show.data, 'EEE'), 0, 3))}"></td>
+                <td>
+                    <span class="d-md-none d-block fw-semibold"
+                          th:text="${#strings.toUpperCase(#strings.substring(#temporals.format(show.data, 'EEE'), 0, 3))}"></span>
+                    <span th:text="${#temporals.format(show.data, 'dd/MM')}"></span>
+                    <span class="d-md-none d-block small text-muted"
+                          th:if="${show.horario != null}" th:text="${#temporals.format(show.horario, 'HH:mm')}"></span>
+                </td>
                 <td class="d-none d-md-table-cell" th:text="${show.horario != null ? #temporals.format(show.horario, 'HH:mm') : '-'}"></td>
                 <td>
                     <span th:text="${show.artista}"></span>
                     <span class="badge text-bg-info align-middle ms-1" th:if="${show.pagamentoMensal}">Mensal</span>
-                    <small class="text-muted d-block text-truncate" style="max-width: 260px;"
+                    <small class="text-muted d-block obs-show"
                            th:if="${show.observacoes}" th:text="${show.observacoes}"></small>
                 </td>
-                <td th:text="${show.local}"></td>
-                <td class="d-none d-md-table-cell" th:text="${show.cache != null ? #numbers.formatCurrency(show.cache) : '-'}"></td>
+                <td>
+                    <span th:text="${show.local}"></span>
+                    <span class="d-md-none d-block small mt-1 text-nowrap">
+                        <span class="text-muted" th:text="${show.cache != null ? #numbers.formatCurrency(show.cache) : '-'}"></span>
+                        <span class="badge ms-1 align-middle" th:classappend="${show.pago} ? 'bg-success' : 'bg-secondary'"
+                              th:text="${show.pago} ? 'Pago' : 'Não pago'"></span>
+                    </span>
+                </td>
                 <td class="d-none d-md-table-cell">
-                    <span class="badge" th:classappend="${show.pago} ? 'bg-success' : 'bg-secondary'"
+                    <span class="d-block" th:text="${show.cache != null ? #numbers.formatCurrency(show.cache) : '-'}"></span>
+                    <span class="badge mt-1" th:classappend="${show.pago} ? 'bg-success' : 'bg-secondary'"
                           th:text="${show.pago} ? 'Pago' : 'Não pago'"></span>
                 </td>
                 <td class="text-end text-nowrap">
                     <div class="d-none d-md-inline-flex gap-1">
-                        <a class="btn btn-sm btn-outline-primary" th:href="@{/shows/{id}/editar(id=${show.id},mes=${filtro.mes},ano=${filtro.ano})}">Editar</a>
+                        <a class="btn btn-sm btn-outline-primary" th:href="@{/shows/{id}/editar(id=${show.id},mes=${filtro.mes},ano=${filtro.ano})}"
+                           title="Editar" aria-label="Editar">
+                            <i class="bi bi-pencil-square" aria-hidden="true"></i>
+                        </a>
                         <form th:action="@{/shows/{id}/pagamento(id=${show.id})}" method="post" class="d-inline">
                             <input type="hidden" name="filtros" th:value="${parametrosLista}">
                             <button type="submit" class="btn btn-sm btn-outline-success"
-                                    th:text="${show.pago} ? 'Marcar não pago' : 'Marcar pago'"></button>
+                                    th:title="${show.pago} ? 'Marcar não pago' : 'Marcar pago'"
+                                    th:aria-label="${show.pago} ? 'Marcar não pago' : 'Marcar pago'">
+                                <i class="bi" th:classappend="${show.pago} ? 'bi-x-circle' : 'bi-check-circle'"
+                                   aria-hidden="true"></i>
+                            </button>
                         </form>
                         <form th:action="@{/shows/{id}/excluir(id=${show.id})}" method="post" class="d-inline"
                               onsubmit="return confirm('Excluir este show?');">
                             <input type="hidden" name="filtros" th:value="${parametrosLista}">
-                            <button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button>
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Excluir" aria-label="Excluir">
+                                <i class="bi bi-trash" aria-hidden="true"></i>
+                            </button>
                         </form>
                     </div>
                     <div class="dropdown d-md-none d-inline-block" data-bs-config='{"popperConfig":{"strategy":"fixed"}}'>
@@ -118,20 +139,27 @@
                                 aria-expanded="false" aria-label="Ações">⋮</button>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li>
-                                <a class="dropdown-item" th:href="@{/shows/{id}/editar(id=${show.id},mes=${filtro.mes},ano=${filtro.ano})}">Editar</a>
+                                <a class="dropdown-item" th:href="@{/shows/{id}/editar(id=${show.id},mes=${filtro.mes},ano=${filtro.ano})}">
+                                    <i class="bi bi-pencil-square me-2" aria-hidden="true"></i>Editar
+                                </a>
                             </li>
                             <li>
                                 <form th:action="@{/shows/{id}/pagamento(id=${show.id})}" method="post">
                                     <input type="hidden" name="filtros" th:value="${parametrosLista}">
-                                    <button type="submit" class="dropdown-item"
-                                            th:text="${show.pago} ? 'Marcar não pago' : 'Marcar pago'"></button>
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="bi me-2" th:classappend="${show.pago} ? 'bi-x-circle' : 'bi-check-circle'"
+                                           aria-hidden="true"></i>
+                                        <span th:text="${show.pago} ? 'Marcar não pago' : 'Marcar pago'"></span>
+                                    </button>
                                 </form>
                             </li>
                             <li>
                                 <form th:action="@{/shows/{id}/excluir(id=${show.id})}" method="post"
                                       onsubmit="return confirm('Excluir este show?');">
                                     <input type="hidden" name="filtros" th:value="${parametrosLista}">
-                                    <button type="submit" class="dropdown-item text-danger">Excluir</button>
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="bi bi-trash me-2" aria-hidden="true"></i>Excluir
+                                    </button>
                                 </form>
                             </li>
                         </ul>

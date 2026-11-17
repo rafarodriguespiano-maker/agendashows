@@ -169,7 +169,7 @@ class ShowControllerTest {
 
         mvc.perform(get("/shows").param("somenteFuturos", "false"))
                 .andExpect(status().isOk())
-                .andExpect(content().string(containsString("<th>Dia</th>")))
+                .andExpect(content().string(containsString(">Dia</th>")))
                 .andExpect(content().string(containsString(">TER<")))
                 .andExpect(content().string(containsString(">10/03<")))
                 .andExpect(content().string(containsString("data-bs-toggle=\"dropdown\"")));
