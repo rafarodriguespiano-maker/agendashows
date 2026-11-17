@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Dispara o relatório semanal toda segunda-feira às 8h (fuso configurável).
+ * Dispara o relatório semanal toda segunda-feira e quinta-feira às 8h (fuso configurável).
  * Uma falha no envio é registrada em log sem interromper a aplicação.
  */
 @Slf4j
@@ -20,7 +20,7 @@ public class RelatorioSemanalScheduler {
 
     private final RelatorioEmailService relatorioEmailService;
 
-    @Scheduled(cron = "${app.relatorio-email.cron:0 0 8 * * MON}",
+    @Scheduled(cron = "${app.relatorio-email.cron}",
             zone = "${app.relatorio-email.fuso:America/Sao_Paulo}")
     public void enviarRelatorioSemanal() {
         log.info("Iniciando envio do relatório semanal de shows.");
