@@ -2,10 +2,12 @@ package com.example.agendashows.relatorio.service;
 
 import com.example.agendashows.relatorio.dto.RelatorioSemanal;
 import com.example.agendashows.relatorio.dto.ShowRelatorio;
+import com.example.agendashows.relatorio.email.EmailMensagem;
+import com.example.agendashows.relatorio.email.EnvioEmail;
+import com.example.agendashows.relatorio.email.EnvioEmailException;
+import com.example.agendashows.relatorio.email.RelatorioEmailHabilitadoCondition;
 import com.example.agendashows.user.entity.AppUser;
 import com.example.agendashows.user.repository.AppUserRepository;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -13,22 +15,19 @@ import java.util.Locale;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.mail.MailException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 /**
- * Envia o relatório semanal para o usuário principal (primeiro usuário ativo com e-mail cadastrado).
- * Só é registrado quando o SMTP está configurado ({@code spring.mail.host}).
+ * Monta e envia o relatório semanal para o usuário principal (primeiro usuário ativo com e-mail).
+ * O transporte (SMTP ou Brevo) é escolhido por {@code EMAIL_TRANSPORTE}.
  */
 @Slf4j
 @Service
-@ConditionalOnProperty(prefix = "spring.mail", name = "host")
+@Conditional(RelatorioEmailHabilitadoCondition.class)
 public class RelatorioEmailService {
 
     private static final String TEMPLATE = "email/relatorio-semanal";
@@ -36,20 +35,20 @@ public class RelatorioEmailService {
 
     private final RelatorioSemanalService relatorioSemanalService;
     private final AppUserRepository appUserRepository;
-    private final JavaMailSender mailSender;
+    private final EnvioEmail envioEmail;
     private final TemplateEngine templateEngine;
     private final String remetente;
     private final String fuso;
 
     public RelatorioEmailService(RelatorioSemanalService relatorioSemanalService,
                                  AppUserRepository appUserRepository,
-                                 JavaMailSender mailSender,
+                                 EnvioEmail envioEmail,
                                  TemplateEngine templateEngine,
                                  @Value("${app.relatorio-email.remetente:}") String remetente,
                                  @Value("${app.relatorio-email.fuso:America/Sao_Paulo}") String fuso) {
         this.relatorioSemanalService = relatorioSemanalService;
         this.appUserRepository = appUserRepository;
-        this.mailSender = mailSender;
+        this.envioEmail = envioEmail;
         this.templateEngine = templateEngine;
         this.remetente = remetente;
         this.fuso = fuso;
@@ -68,19 +67,18 @@ public class RelatorioEmailService {
 
         AppUser usuario = destinatario.get();
         RelatorioSemanal relatorio = relatorioSemanalService.daSemana(LocalDate.now(ZoneId.of(fuso)));
+        EmailMensagem mensagem = new EmailMensagem(
+                usuario.getEmail().trim(),
+                assunto(relatorio),
+                montarHtml(relatorio, usuario),
+                textoSimples(relatorio));
 
         try {
-            MimeMessage mensagem = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mensagem, true, "UTF-8");
-            helper.setFrom(remetente);
-            helper.setTo(usuario.getEmail().trim());
-            helper.setSubject(assunto(relatorio));
-            helper.setText(textoSimples(relatorio), montarHtml(relatorio, usuario));
-            mailSender.send(mensagem);
+            envioEmail.enviar(mensagem);
 
             log.info("Relatório semanal ({}) enviado para {} ({} show(s)).",
                     relatorio.periodo(), usuario.getEmail(), relatorio.quantidade());
-        } catch (MessagingException | MailException ex) {
+        } catch (EnvioEmailException ex) {
             log.error("Falha ao enviar o relatório semanal para {}.", usuario.getEmail(), ex);
         }
     }

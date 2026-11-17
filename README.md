@@ -44,7 +44,7 @@ e **MySQL**, com migrações de banco via **Flyway**.
 - **Validação de formulário** com mensagens em português.
 - **Usuário inicial** criado automaticamente na primeira execução, quando o banco está vazio.
 - **Relatório semanal por e-mail**: toda segunda-feira às 8h (fuso `America/Sao_Paulo`) a aplicação envia
-  para o usuário principal o relatório com os shows da semana (segunda a domingo), por SMTP configurável.
+  para o usuário principal o relatório com os shows da semana (segunda a domingo), via SMTP ou API do Brevo.
 - **Flash messages** para sucesso e erro das operações.
 
 ---
@@ -197,7 +197,12 @@ Arquivos em `src/main/resources`:
 | `USUARIO_INICIAL` | `admin` (dev) | Nome do usuário criado no primeiro start |
 | `SENHA_INICIAL` | `admin` (dev) | Senha do usuário inicial (armazenada como BCrypt) |
 | `EMAIL_INICIAL` | vazio | E-mail do usuário principal; também preenche o usuário existente se estiver sem e-mail |
-| `MAIL_HOST` | vazio | Servidor SMTP; **sem ele o relatório semanal não é enviado** |
+| `EMAIL_TRANSPORTE` | `smtp` | `smtp` (VPS/dev) ou `brevo` (API HTTPS, para Railway Free/Trial/Hobby) |
+| `BREVO_API_KEY` | vazio | Chave da API do Brevo; obrigatória no transporte `brevo` |
+| `BREVO_API_URL` | `https://api.brevo.com/v3/smtp/email` | Endpoint da API do Brevo |
+| `MAIL_REMETENTE` | `MAIL_USUARIO` | Remetente do e-mail do relatório (verificado no provedor) |
+| `MAIL_NOME_REMETENTE` | `Agenda de Shows` | Nome exibido como remetente |
+| `MAIL_HOST` | vazio | Servidor SMTP; usado apenas no transporte `smtp` |
 | `MAIL_PORT` | `587` | Porta SMTP |
 | `MAIL_USUARIO` | vazio | Usuário de autenticação SMTP |
 | `MAIL_SENHA` | vazio | Senha (de app) do SMTP |
@@ -302,14 +307,46 @@ de **segunda a domingo** (as datas da segunda do envio até o domingo seguinte, 
   total de shows, cachê total, pagos e pendentes.
 - Sem shows no período, o e-mail é enviado normalmente com "Nenhum show agendado para esta semana".
 - Se não houver usuário com e-mail, o envio é apenas registrado em log (`WARN`), sem afetar a aplicação.
-- O envio usa **SMTP configurado por variáveis de ambiente**. Sem `MAIL_HOST`, o agendador não é criado
-  (a aplicação sobe normalmente).
+- O envio usa **SMTP ou a API HTTPS do Brevo**, escolhido por `EMAIL_TRANSPORTE`. Sem o transporte
+  configurado, o agendador não é criado (a aplicação sobe normalmente).
 
-### Configuração
+### Transportes
+
+| `EMAIL_TRANSPORTE` | Requer | Quando usar |
+| --- | --- | --- |
+| `smtp` (padrão) | `MAIL_HOST` e credenciais `MAIL_*` | VPS com Docker Compose e desenvolvimento |
+| `brevo` | `BREVO_API_KEY` e `MAIL_REMETENTE` verificado | Railway Free/Trial/Hobby, que bloqueiam SMTP de saída |
+
+> A Railway bloqueia as portas SMTP 25, 465, 587 e 2525 nos planos Free, Trial e Hobby; somente o
+> plano Pro libera. A API do Brevo usa HTTPS (porta 443), que funciona em qualquer plano.
+
+### Configuração com Brevo (Railway)
+
+1. Crie uma conta gratuita no [Brevo](https://www.brevo.com) (plano Free: ~300 e-mails/dia).
+2. Em **Senders, Domains & IPs → Senders**, cadastre e confirme o e-mail remetente (não é preciso
+   domínio próprio; basta clicar no link de confirmação).
+3. Em **SMTP & API → API Keys**, crie uma chave e use como `BREVO_API_KEY`.
+4. Configure as variáveis:
+
+```dotenv
+EMAIL_INICIAL=seu-email@exemplo.com
+EMAIL_TRANSPORTE=brevo
+BREVO_API_KEY=xkeysib-...
+MAIL_REMETENTE=seu-email@exemplo.com   # o mesmo sender confirmado no Brevo
+MAIL_NOME_REMETENTE=Agenda de Shows
+```
+
+No start, o log confirma o transporte:
+`Relatório semanal habilitado: transporte brevo, remetente '...', cron '0 0 8 * * MON', fuso 'America/Sao_Paulo'.`
+Erros da API aparecem como `Brevo respondeu HTTP 400/401 ...` (sender não verificado, chave inválida
+ou limite diário), sem derrubar a aplicação.
+
+### Configuração com SMTP (VPS/desenvolvimento)
 
 ```dotenv
 EMAIL_INICIAL=seu-email@exemplo.com
 
+EMAIL_TRANSPORTE=smtp
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
 MAIL_USUARIO=seu-email@exemplo.com
@@ -323,7 +360,7 @@ MAIL_REMETENTE=seu-email@exemplo.com
 
 - O e-mail do usuário existente pode ser preenchido via `EMAIL_INICIAL` no próximo start ou diretamente
   no banco: `UPDATE usuario SET email = '...' WHERE nome_usuario = 'admin';`
-- Para desativar o envio, remova `MAIL_HOST`.
+- Para desativar o envio, remova `BREVO_API_KEY` (transporte `brevo`) ou `MAIL_HOST` (transporte `smtp`).
 - Para testar o horário, ajuste `EMAIL_RELATORIO_CRON` (sintaxe de cron do Spring, 6 campos) e reinicie.
 - Como o agendador fica na aplicação, mantenha **uma única instância** rodando (a sessão de login também
   é em memória).
@@ -380,11 +417,10 @@ DB_SENHA=${{MySQL.MYSQLPASSWORD}}
 USUARIO_INICIAL=admin
 SENHA_INICIAL=<uma-senha-forte>
 EMAIL_INICIAL=<seu-email@exemplo.com>
-MAIL_HOST=smtp.gmail.com
-MAIL_PORT=587
-MAIL_USUARIO=<seu-email@exemplo.com>
-MAIL_SENHA=<senha-de-app>
+EMAIL_TRANSPORTE=brevo
+BREVO_API_KEY=<chave-da-api-brevo>
 MAIL_REMETENTE=<seu-email@exemplo.com>
+MAIL_NOME_REMETENTE=Agenda de Shows
 ```
 
 > As referências `${{MySQL.*}}` são resolvidas pelo Railway. Se o serviço de banco tiver outro
