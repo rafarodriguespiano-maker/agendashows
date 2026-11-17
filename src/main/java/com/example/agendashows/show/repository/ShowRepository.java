@@ -14,16 +14,22 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
 
     /**
      * Agrega os totais do período. Os parâmetros de período são opcionais: quando nulos, não restringem a consulta.
+     *
+     * <p>Os totais gerais consideram apenas shows sem pagamento mensal; os campos de pagamento mensal
+     * ({@code quantidadeMensais} e {@code cacheMensal}) consideram apenas os marcados como mensais.</p>
      */
     @Query("""
-            select count(s) as quantidadeShows,
-                   sum(s.cache) as cacheTotal,
-                   sum(case when s.pago = true then s.cache end) as cachePago,
-                   sum(case when s.pago = false then s.cache end) as cachePendente,
-                   sum(case when s.pago = true then 1 else 0 end) as quantidadePagas,
-                   sum(case when s.pago = false then 1 else 0 end) as quantidadePendentes,
-                   avg(s.cache) as cacheMedio,
-                   max(s.cache) as maiorCache
+            select sum(case when s.pagamentoMensal = false then 1 else 0 end) as quantidadeShows,
+                   sum(case when s.pagamentoMensal = false then s.cache end) as cacheTotal,
+                   sum(case when s.pagamentoMensal = false and s.pago = true then s.cache end) as cachePago,
+                   sum(case when s.pagamentoMensal = false and s.pago = false then s.cache end) as cachePendente,
+                   sum(case when s.pagamentoMensal = false and s.pago = true then 1 else 0 end) as quantidadePagas,
+                   sum(case when s.pagamentoMensal = false and s.pago = false then 1 else 0 end) as quantidadePendentes,
+                   sum(case when s.pagamentoMensal = true then 1 else 0 end) as quantidadeMensais,
+                   sum(case when s.pagamentoMensal = true then s.cache end) as cacheMensal,
+                   avg(case when s.pagamentoMensal = false then s.cache end) as cacheMedio,
+                   max(case when s.pagamentoMensal = false then s.cache end) as maiorCache,
+                   min(case when s.pagamentoMensal = false then s.cache end) as menorCache
             from Show s
             where (:inicio is null or s.data >= :inicio)
               and (:fim is null or s.data < :fim)
@@ -52,6 +58,23 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
                                                      @Param("mes") Integer mes,
                                                      Pageable paginacao);
 
+    /**
+     * Próximos shows do período: considera apenas datas a partir de hoje, em ordem cronológica.
+     */
+    @Query("""
+            select s
+            from Show s
+            where s.data >= :hoje
+              and (:inicio is null or s.data >= :inicio)
+              and (:fim is null or s.data < :fim)
+              and (:mes is null or month(s.data) = :mes)
+            order by s.data asc, s.horario asc
+            """)
+    List<Show> buscarProximos(@Param("hoje") LocalDate hoje,
+                              @Param("inicio") LocalDate inicio,
+                              @Param("fim") LocalDate fim,
+                              @Param("mes") Integer mes);
+
     interface ResumoPeriodoProjection {
 
         Long getQuantidadeShows();
@@ -66,9 +89,15 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
 
         Long getQuantidadePendentes();
 
+        Long getQuantidadeMensais();
+
+        BigDecimal getCacheMensal();
+
         Double getCacheMedio();
 
         BigDecimal getMaiorCache();
+
+        BigDecimal getMenorCache();
     }
 
     interface ArtistaRankingProjection {

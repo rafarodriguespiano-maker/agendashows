@@ -12,6 +12,9 @@ public record ResumoShows(
         BigDecimal cachePendente,
         long quantidadePagas,
         long quantidadePendentes,
+        long quantidadeMensais,
+        BigDecimal cacheMensal,
         BigDecimal cacheMedio,
-        BigDecimal maiorCache) {
+        BigDecimal maiorCache,
+        BigDecimal menorCache) {
 }

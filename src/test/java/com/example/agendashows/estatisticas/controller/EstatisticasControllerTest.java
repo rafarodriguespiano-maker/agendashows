@@ -1,5 +1,6 @@
 package com.example.agendashows.estatisticas.controller;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
@@ -67,9 +68,13 @@ class EstatisticasControllerTest {
                         new BigDecimal("500.00"),
                         1,
                         1,
+                        0,
+                        new BigDecimal("0.00"),
                         new BigDecimal("750.00"),
-                        new BigDecimal("1000.00")))))
+                        new BigDecimal("1000.00"),
+                        new BigDecimal("500.00")))))
                 .andExpect(content().string(containsString("Estatísticas")))
+                .andExpect(content().string(containsString("Menor cachê")))
                 .andExpect(content().string(containsString("Banda A")))
                 .andExpect(content().string(not(containsString("Banda B"))));
     }
@@ -108,6 +113,9 @@ class EstatisticasControllerTest {
                         new BigDecimal("0.00"),
                         1,
                         0,
+                        0,
+                        new BigDecimal("0.00"),
+                        new BigDecimal("500.00"),
                         new BigDecimal("500.00"),
                         new BigDecimal("500.00")))))
                 .andExpect(content().string(containsString("Banda Atual")))
@@ -130,8 +138,11 @@ class EstatisticasControllerTest {
                         new BigDecimal("0.00"),
                         2,
                         0,
+                        0,
+                        new BigDecimal("0.00"),
                         new BigDecimal("150.00"),
-                        new BigDecimal("200.00")))));
+                        new BigDecimal("200.00"),
+                        new BigDecimal("100.00")))));
     }
 
     @Test
@@ -150,8 +161,11 @@ class EstatisticasControllerTest {
                         new BigDecimal("0.00"),
                         2,
                         0,
+                        0,
+                        new BigDecimal("0.00"),
                         new BigDecimal("250.00"),
-                        new BigDecimal("300.00")))));
+                        new BigDecimal("300.00"),
+                        new BigDecimal("200.00")))));
     }
 
     @Test
@@ -168,6 +182,9 @@ class EstatisticasControllerTest {
                         new BigDecimal("0.00"),
                         0,
                         0,
+                        0,
+                        new BigDecimal("0.00"),
+                        new BigDecimal("0.00"),
                         new BigDecimal("0.00"),
                         new BigDecimal("0.00")))))
                 .andExpect(model().attribute("ranking", is(List.of())))
@@ -188,10 +205,71 @@ class EstatisticasControllerTest {
                         new BigDecimal("0.00"),
                         0,
                         1,
+                        0,
+                        new BigDecimal("0.00"),
+                        new BigDecimal("0.00"),
                         new BigDecimal("0.00"),
                         new BigDecimal("0.00")))))
                 .andExpect(model().attribute("ranking", is(List.of(
                         new ArtistaRanking("Banda Sem Cachê", 1, new BigDecimal("0.00"))))));
+    }
+
+    @Test
+    @WithMockUser
+    void ignoraShowsMensaisNosTotaisGerais() throws Exception {
+        Show mensal = salvar(LocalDate.of(2026, 3, 10), "Banda Mensal", "1000.00", false);
+        mensal.setPagamentoMensal(true);
+        showRepository.save(mensal);
+        salvar(LocalDate.of(2026, 3, 15), "Banda Avulsa", "500.00", true);
+
+        mvc.perform(get("/estatisticas").param("mes", "3").param("ano", "2026"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("resumo", is(new ResumoShows(
+                        1,
+                        new BigDecimal("500.00"),
+                        new BigDecimal("500.00"),
+                        new BigDecimal("0.00"),
+                        1,
+                        0,
+                        1,
+                        new BigDecimal("1000.00"),
+                        new BigDecimal("500.00"),
+                        new BigDecimal("500.00"),
+                        new BigDecimal("500.00")))))
+                .andExpect(content().string(containsString("Com pagamento mensal")));
+    }
+
+    @Test
+    @WithMockUser
+    void listaProximosShowsDoPeriodoIgnorandoDatasPassadas() throws Exception {
+        LocalDate futuro = LocalDate.now().plusDays(1);
+        Show mensal = salvar(futuro, "Banda Futura", "800.00", false);
+        mensal.setPagamentoMensal(true);
+        mensal.setObservacoes("Show especial");
+        showRepository.save(mensal);
+        salvar(LocalDate.of(2020, 3, 10), "Banda Antiga", "100.00", true);
+
+        mvc.perform(get("/estatisticas")
+                        .param("mes", String.valueOf(futuro.getMonthValue()))
+                        .param("ano", String.valueOf(futuro.getYear())))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("proximos", contains(hasProperty("artista", is("Banda Futura")))))
+                .andExpect(content().string(containsString("Próximos shows")))
+                .andExpect(content().string(containsString("Banda Futura")))
+                .andExpect(content().string(containsString("Show especial")))
+                .andExpect(content().string(containsString(">Mensal<")))
+                .andExpect(content().string(not(containsString("Banda Antiga"))));
+    }
+
+    @Test
+    @WithMockUser
+    void exibeMensagemQuandoNaoHaProximosShowsNoPeriodo() throws Exception {
+        salvar(LocalDate.of(2020, 3, 10), "Banda Antiga", "100.00", true);
+
+        mvc.perform(get("/estatisticas").param("mes", "3").param("ano", "2020"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("proximos", is(List.of())))
+                .andExpect(content().string(containsString("Nenhum show futuro no período.")));
     }
 
     private Show salvar(LocalDate data, String artista, String cache, boolean pago) {

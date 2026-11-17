@@ -42,6 +42,8 @@ public class ShowForm {
 
     private boolean pago;
 
+    private boolean pagamentoMensal;
+
     public static ShowForm de(Show show) {
         ShowForm formulario = new ShowForm();
         formulario.setId(show.getId());
@@ -52,6 +54,7 @@ public class ShowForm {
         formulario.setObservacoes(show.getObservacoes());
         formulario.setCache(show.getCache());
         formulario.setPago(show.isPago());
+        formulario.setPagamentoMensal(show.isPagamentoMensal());
         return formulario;
     }
 
@@ -63,5 +66,6 @@ public class ShowForm {
         show.setObservacoes(observacoes);
         show.setCache(cache);
         show.setPago(pago);
+        show.setPagamentoMensal(pagamentoMensal);
     }
 }

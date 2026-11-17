@@ -213,7 +213,8 @@ class ShowControllerTest {
                         .param("local", "Casa de Show")
                         .param("horario", "21:00")
                         .param("cache", "1500.50")
-                        .param("pago", "true"))
+                        .param("pago", "true")
+                        .param("pagamentoMensal", "true"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/shows"));
 
@@ -222,6 +223,7 @@ class ShowControllerTest {
         assertThat(show.getArtista()).isEqualTo("Banda X");
         assertThat(show.getCache()).isEqualByComparingTo("1500.50");
         assertThat(show.isPago()).isTrue();
+        assertThat(show.isPagamentoMensal()).isTrue();
     }
 
     @Test
@@ -236,6 +238,7 @@ class ShowControllerTest {
         Show show = showRepository.findAll().getFirst();
         assertThat(show.getHorario()).isNull();
         assertThat(show.getCache()).isNull();
+        assertThat(show.isPagamentoMensal()).isFalse();
     }
 
     @Test
@@ -291,6 +294,41 @@ class ShowControllerTest {
                         .param("artista", "Banda")
                         .param("local", "Local"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser
+    void mantemPagamentoMensalAoEditarShow() throws Exception {
+        Show show = salvar(LocalDate.of(2026, 3, 10), "Banda", false);
+
+        mvc.perform(post("/shows/{id}", show.getId()).with(csrf())
+                        .param("data", "2026-03-10")
+                        .param("artista", "Banda")
+                        .param("local", "Local")
+                        .param("pagamentoMensal", "true"))
+                .andExpect(status().is3xxRedirection());
+
+        assertThat(showRepository.findById(show.getId())).get()
+                .extracting(Show::isPagamentoMensal).isEqualTo(true);
+
+        mvc.perform(get("/shows/{id}/editar", show.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("name=\"pagamentoMensal\"")))
+                .andExpect(content().string(containsString("checked=\"checked\"")));
+    }
+
+    @Test
+    @WithMockUser
+    void exibeBadgeDePagamentoMensalNaListagem() throws Exception {
+        Show show = salvar(LocalDate.of(2026, 3, 10), "Banda Mensal", true);
+        show.setPagamentoMensal(true);
+        showRepository.save(show);
+        salvar(LocalDate.of(2026, 3, 11), "Banda Avulsa", true);
+
+        mvc.perform(get("/shows").param("somenteFuturos", "false"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString(">Mensal<")))
+                .andExpect(content().string(containsString("Banda Mensal")));
     }
 
     private Show salvar(LocalDate data, String artista, boolean pago) {

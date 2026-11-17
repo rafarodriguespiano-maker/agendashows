@@ -25,6 +25,7 @@ public class EstatisticasController {
         model.addAttribute("meses", Meses.nomes());
         model.addAttribute("resumo", estatisticasService.resumir(filtro));
         model.addAttribute("ranking", estatisticasService.ranking(filtro));
+        model.addAttribute("proximos", estatisticasService.proximosShows(filtro));
         return VIEW_ESTATISTICAS;
     }
 }

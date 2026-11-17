@@ -44,4 +44,7 @@ public class Show {
 
     @Column(name = "pago", nullable = false)
     private boolean pago;
+
+    @Column(name = "pagamento_mensal", nullable = false)
+    private boolean pagamentoMensal;
 }

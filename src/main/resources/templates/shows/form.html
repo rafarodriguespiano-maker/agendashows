@@ -53,10 +53,16 @@
                         <div class="invalid-feedback" th:errors="*{observacoes}"></div>
                     </div>
 
-                    <div class="col-12">
+                    <div class="col-md-6">
                         <div class="form-check">
                             <input type="checkbox" id="pago" class="form-check-input" th:field="*{pago}">
                             <label for="pago" class="form-check-label">Cachê pago</label>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input type="checkbox" id="pagamentoMensal" class="form-check-input" th:field="*{pagamentoMensal}">
+                            <label for="pagamentoMensal" class="form-check-label">Pagamento mensal</label>
                         </div>
                     </div>
                 </div>

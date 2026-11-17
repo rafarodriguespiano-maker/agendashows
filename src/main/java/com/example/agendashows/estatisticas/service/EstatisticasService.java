@@ -3,6 +3,7 @@ package com.example.agendashows.estatisticas.service;
 import com.example.agendashows.estatisticas.dto.ArtistaRanking;
 import com.example.agendashows.estatisticas.dto.PeriodoFilter;
 import com.example.agendashows.estatisticas.dto.ResumoShows;
+import com.example.agendashows.show.entity.Show;
 import com.example.agendashows.show.repository.ShowRepository;
 import com.example.agendashows.show.repository.ShowRepository.ResumoPeriodoProjection;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -35,8 +37,11 @@ public class EstatisticasService {
                 moeda(resumo.getCachePendente()),
                 numero(resumo.getQuantidadePagas()),
                 numero(resumo.getQuantidadePendentes()),
+                numero(resumo.getQuantidadeMensais()),
+                moeda(resumo.getCacheMensal()),
                 moeda(resumo.getCacheMedio()),
-                moeda(resumo.getMaiorCache()));
+                moeda(resumo.getMaiorCache()),
+                moeda(resumo.getMenorCache()));
     }
 
     @Transactional(readOnly = true)
@@ -51,6 +56,12 @@ public class EstatisticasService {
                         numero(item.getQuantidadeShows()),
                         moeda(item.getCacheTotal())))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Show> proximosShows(PeriodoFilter filtro) {
+        Periodo periodo = Periodo.de(filtro);
+        return showRepository.buscarProximos(LocalDate.now(), periodo.inicio(), periodo.fim(), periodo.mes());
     }
 
     private static long numero(Long valor) {
