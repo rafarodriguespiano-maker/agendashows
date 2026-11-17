@@ -38,6 +38,10 @@ public final class ShowSpecifications {
             spec = spec.and((root, query, cb) -> cb.equal(root.get("pago"), pago));
         }
 
+        if (StringUtils.hasText(filtro.getArtista())) {
+            spec = spec.and(contem("artista", filtro.getArtista()));
+        }
+
         if (StringUtils.hasText(filtro.getObservacoes())) {
             spec = spec.and(contem("observacoes", filtro.getObservacoes()));
         }

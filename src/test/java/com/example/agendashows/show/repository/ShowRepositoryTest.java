@@ -59,6 +59,15 @@ class ShowRepositoryTest {
     }
 
     @Test
+    void filtraPorArtistaParcialSemDiferenciarMaiusculas() {
+        ShowFilter filtro = new ShowFilter();
+        filtro.setArtista("banda b");
+
+        assertThat(buscar(filtro)).hasSize(1);
+        assertThat(buscar(filtro).getFirst().getArtista()).isEqualTo("Banda B");
+    }
+
+    @Test
     void filtraPorObservacoesSemDiferenciarMaiusculas() {
         assertThat(buscar(filtro(null, null, null, "ACÚSTICO", null))).hasSize(1);
     }

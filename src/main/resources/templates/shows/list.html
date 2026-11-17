@@ -14,36 +14,40 @@
 
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <form th:action="@{/shows}" method="get" th:object="${filtro}" class="row g-2 align-items-end">
-                <div class="col-md-2">
+            <form id="filtro" th:action="@{/shows}" method="get" th:object="${filtro}" class="row g-2 align-items-end">
+                <div class="col-6 col-md-2">
                     <label class="form-label small">Mês</label>
                     <select class="form-select" th:field="*{mes}">
                         <option value="">Todos</option>
                         <option th:each="mes : ${meses}" th:value="${mes.key}" th:text="${mes.value}"></option>
                     </select>
                 </div>
-                <div class="col-md-1">
+                <div class="col-6 col-md-1">
                     <label class="form-label small">Ano</label>
                     <input type="number" class="form-control" min="1" max="9999" th:field="*{ano}">
                 </div>
-                <div class="col-md-2">
+                <div class="col-6 col-md-2">
                     <label class="form-label small">Pagamento</label>
                     <select class="form-select" th:field="*{situacaoPagamento}">
                         <option value="">Todos</option>
                         <option th:each="situacao : ${situacoes}" th:value="${situacao}" th:text="${situacao.descricao}"></option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-6 col-md-2">
+                    <label class="form-label small">Artista</label>
+                    <input type="text" class="form-control" maxlength="150" th:field="*{artista}">
+                </div>
+                <div class="col-12 col-md-2">
                     <label class="form-label small">Observações</label>
                     <input type="text" class="form-control" maxlength="200" th:field="*{observacoes}">
                 </div>
-                <div class="col-md-2">
+                <div class="col-12 col-md-3">
                     <label class="form-label small">Local</label>
                     <input type="text" class="form-control" maxlength="200" th:field="*{local}">
                 </div>
-                <div class="col-md-2 d-flex gap-2">
-                    <button type="submit" class="btn btn-secondary flex-fill">Filtrar</button>
-                    <a class="btn btn-outline-secondary flex-fill" th:href="@{/shows}">Limpar</a>
+                <div class="col-12 d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-secondary">Filtrar</button>
+                    <a class="btn btn-outline-secondary" th:href="@{/shows}">Limpar</a>
                 </div>
             </form>
         </div>
@@ -133,12 +137,41 @@
             <li class="page-item" th:each="numero : ${#numbers.sequence(0, pagina.totalPages - 1)}"
                 th:classappend="${numero == pagina.number} ? 'active'">
                 <a class="page-link"
-                   th:href="@{/shows(page=${numero},mes=${filtro.mes ?: ''},ano=${filtro.ano ?: ''},situacaoPagamento=${filtro.situacaoPagamento ?: ''},observacoes=${filtro.observacoes ?: ''},local=${filtro.local ?: ''})}"
+                   th:href="@{/shows(page=${numero},mes=${filtro.mes ?: ''},ano=${filtro.ano ?: ''},situacaoPagamento=${filtro.situacaoPagamento ?: ''},artista=${filtro.artista ?: ''},observacoes=${filtro.observacoes ?: ''},local=${filtro.local ?: ''})}"
                    th:text="${numero + 1}"></a>
             </li>
         </ul>
     </nav>
 </main>
 <script th:replace="~{fragments/base :: scripts}"></script>
+<script>
+    (function () {
+        const form = document.getElementById('filtro');
+        if (!form) {
+            return;
+        }
+
+        let temporizador;
+
+        form.addEventListener('submit', function () {
+            clearTimeout(temporizador);
+        });
+
+        form.querySelectorAll('select, input[type="number"]').forEach(function (campo) {
+            campo.addEventListener('change', function () {
+                form.requestSubmit();
+            });
+        });
+
+        form.querySelectorAll('input[type="text"]').forEach(function (campo) {
+            campo.addEventListener('input', function () {
+                clearTimeout(temporizador);
+                temporizador = setTimeout(function () {
+                    form.requestSubmit();
+                }, 600);
+            });
+        });
+    })();
+</script>
 </body>
 </html>

@@ -13,6 +13,7 @@ public class ShowFilter {
     private Integer mes;
     private Integer ano;
     private StatusPagamento situacaoPagamento;
+    private String artista;
     private String observacoes;
     private String local;
 }
