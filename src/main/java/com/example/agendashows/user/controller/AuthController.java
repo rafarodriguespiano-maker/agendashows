@@ -8,7 +8,7 @@ public class AuthController {
 
     @GetMapping("/")
     public String raiz() {
-        return "redirect:/shows";
+        return "redirect:/estatisticas";
     }
 
     @GetMapping("/entrar")

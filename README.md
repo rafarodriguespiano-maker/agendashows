@@ -28,6 +28,8 @@ e **MySQL**, com migrações de banco via **Flyway**.
 - **Autenticação** com login por formulário e senha criptografada com BCrypt.
 - **Proteção de rotas**: todas as páginas exigem autenticação, exceto login, assets e página de erro.
 - **CRUD de shows** com data, artista, local, horário, observações, cachê e status de pagamento.
+- **Cadastro em lote**: gera um show para cada ocorrência dos dias da semana marcados no mês/ano
+  selecionados, copiando horário, cachê, artista, local, observações e pagamento mensal.
 - **Listagem paginada** (20 itens por página), ordenada por data crescente.
 - **Filtros combináveis**:
   - mês e/ou ano (comportamento diferente quando apenas um dos dois é informado);
@@ -139,13 +141,15 @@ com `ddl-auto=validate`, ou seja, apenas valida o esquema.
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| `GET` | `/` | Redireciona para `/shows` |
+| `GET` | `/` | Redireciona para `/estatisticas` |
 | `GET` | `/entrar` | Página de login |
 | `POST` | `/entrar` | Processa o login |
 | `POST` | `/sair` | Logout |
 | `GET` | `/shows` | Listagem paginada com filtros |
 | `GET` | `/shows/novo` | Formulário de cadastro |
 | `POST` | `/shows` | Cria um show |
+| `GET` | `/shows/lote` | Formulário de cadastro em lote |
+| `POST` | `/shows/lote` | Cria um show para cada ocorrência dos dias da semana selecionados no mês/ano |
 | `GET` | `/shows/{id}/editar` | Formulário de edição |
 | `POST` | `/shows/{id}` | Atualiza um show |
 | `POST` | `/shows/{id}/pagamento` | Alterna pago / não pago |

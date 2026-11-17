@@ -1,6 +1,7 @@
 package com.example.agendashows.user.controller;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -49,12 +50,19 @@ class AuthenticationTest {
     }
 
     @Test
-    void loginComCredenciaisValidasRedirecionaParaShows() throws Exception {
+    void loginComCredenciaisValidasRedirecionaParaEstatisticas() throws Exception {
         mvc.perform(post("/entrar").with(csrf())
                         .param("username", "musico")
                         .param("password", "segredo123"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/shows"));
+                .andExpect(redirectedUrl("/estatisticas"));
+    }
+
+    @Test
+    void raizRedirecionaParaEstatisticas() throws Exception {
+        mvc.perform(get("/").with(user("musico")))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/estatisticas"));
     }
 
     @Test

@@ -9,10 +9,9 @@
 <body>
 <nav th:fragment="navbar" class="navbar navbar-expand navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand" th:href="@{/shows}">Agenda de Shows</a>
+        <a class="navbar-brand" th:href="@{/estatisticas}">Agenda de Shows</a>
         <div class="navbar-nav me-auto">
             <a class="nav-link" th:href="@{/shows(mes=${mes},ano=${ano})}">Shows</a>
-            <a class="nav-link" th:href="@{/shows/novo(mes=${mes},ano=${ano})}">Novo show</a>
             <a class="nav-link" th:href="@{/estatisticas(mes=${mes},ano=${ano})}">Estatísticas</a>
         </div>
         <form th:action="@{/sair}" method="post" class="d-flex align-items-center gap-2">

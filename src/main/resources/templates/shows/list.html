@@ -9,7 +9,10 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1 class="h3 mb-0">Agenda de shows</h1>
-        <a class="btn btn-primary" th:href="@{/shows/novo(mes=${filtro.mes},ano=${filtro.ano})}">Novo show</a>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-primary" th:href="@{/shows/lote(mes=${filtro.mes},ano=${filtro.ano})}">Novos em lote</a>
+            <a class="btn btn-primary" th:href="@{/shows/novo(mes=${filtro.mes},ano=${filtro.ano})}">Novo show</a>
+        </div>
     </div>
 
     <div class="card shadow-sm mb-4">

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: header('Novos shows em lote')}"></head>
+<body class="bg-light">
+<nav th:replace="~{fragments/base :: navbar}"></nav>
+
+<main class="container py-4" style="max-width: 900px;">
+    <div th:replace="~{fragments/base :: messages}"></div>
+
+    <h1 class="h3 mb-4">Novos shows em lote</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            <form th:action="@{/shows/lote}" method="post" th:object="${formulario}">
+                <p class="text-muted small mb-4">
+                    Cada dia da semana marcado gera um show para cada ocorrência desse dia no mês e ano
+                    selecionados. Horário, cachê, artista, local, observações e pagamento mensal são copiados
+                    para todos os shows criados.
+                </p>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="mes" class="form-label">Mês <span class="text-danger">*</span></label>
+                        <select id="mes" class="form-select" th:field="*{mes}"
+                                th:classappend="${#fields.hasErrors('mes')} ? 'is-invalid'">
+                            <option value="">Selecione</option>
+                            <option th:each="opcao : ${meses}" th:value="${opcao.key}" th:text="${opcao.value}"></option>
+                        </select>
+                        <div class="invalid-feedback" th:errors="*{mes}"></div>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="ano" class="form-label">Ano <span class="text-danger">*</span></label>
+                        <input type="number" id="ano" class="form-control" min="1" max="9999" th:field="*{ano}"
+                               th:classappend="${#fields.hasErrors('ano')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{ano}"></div>
+                    </div>
+                </div>
+
+                <fieldset class="mt-4">
+                    <legend class="form-label fs-6">Dias da semana <span class="text-danger">*</span></legend>
+                    <div class="row g-2">
+                        <div class="col-6 col-md-3">
+                            <div class="form-check">
+                                <input type="checkbox" id="segunda" class="form-check-input" th:field="*{segunda}">
+                                <label for="segunda" class="form-check-label">Segunda-feira</label>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="form-check">
+                                <input type="checkbox" id="terca" class="form-check-input" th:field="*{terca}">
+                                <label for="terca" class="form-check-label">Terça-feira</label>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="form-check">
+                                <input type="checkbox" id="quarta" class="form-check-input" th:field="*{quarta}">
+                                <label for="quarta" class="form-check-label">Quarta-feira</label>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="form-check">
+                                <input type="checkbox" id="quinta" class="form-check-input" th:field="*{quinta}">
+                                <label for="quinta" class="form-check-label">Quinta-feira</label>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="form-check">
+                                <input type="checkbox" id="sexta" class="form-check-input" th:field="*{sexta}">
+                                <label for="sexta" class="form-check-label">Sexta-feira</label>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="form-check">
+                                <input type="checkbox" id="sabado" class="form-check-input" th:field="*{sabado}">
+                                <label for="sabado" class="form-check-label">Sábado</label>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="form-check">
+                                <input type="checkbox" id="domingo" class="form-check-input" th:field="*{domingo}">
+                                <label for="domingo" class="form-check-label">Domingo</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-danger small mt-1" th:if="${#fields.hasErrors('aoMenosUmDiaSelecionado')}"
+                         th:errors="*{aoMenosUmDiaSelecionado}"></div>
+                </fieldset>
+
+                <div class="row g-3 mt-1">
+                    <div class="col-md-4">
+                        <label for="horario" class="form-label">Horário</label>
+                        <input type="time" id="horario" class="form-control" th:field="*{horario}">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="cache" class="form-label">Cachê (R$)</label>
+                        <input type="number" id="cache" class="form-control" step="0.01" min="0" th:field="*{cache}"
+                               th:classappend="${#fields.hasErrors('cache')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{cache}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="artista" class="form-label">Artista <span class="text-danger">*</span></label>
+                        <input type="text" id="artista" class="form-control" maxlength="150" th:field="*{artista}"
+                               th:classappend="${#fields.hasErrors('artista')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{artista}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="local" class="form-label">Local <span class="text-danger">*</span></label>
+                        <input type="text" id="local" class="form-control" maxlength="200" th:field="*{local}"
+                               th:classappend="${#fields.hasErrors('local')} ? 'is-invalid'">
+                        <div class="invalid-feedback" th:errors="*{local}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="observacoes" class="form-label">Observações</label>
+                        <textarea id="observacoes" class="form-control" rows="4" th:field="*{observacoes}"
+                                  th:classappend="${#fields.hasErrors('observacoes')} ? 'is-invalid'"></textarea>
+                        <div class="invalid-feedback" th:errors="*{observacoes}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-check">
+                            <input type="checkbox" id="pagamentoMensal" class="form-check-input" th:field="*{pagamentoMensal}">
+                            <label for="pagamentoMensal" class="form-check-label">Pagamento mensal</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a class="btn btn-outline-secondary" th:href="@{/shows(mes=${mes},ano=${ano})}">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Cadastrar shows</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
+</body>
+</html>
