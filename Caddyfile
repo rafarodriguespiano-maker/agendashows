@@ -1,0 +1,12 @@
+# O domínio vem da variável APP_DOMAIN definida no docker-compose.prod.yml.
+# O Caddy obtém e renova o certificado Let's Encrypt automaticamente.
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy app:8080
+
+	log {
+		output stdout
+		format console
+	}
+}

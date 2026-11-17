@@ -1,0 +1,12 @@
+.git
+.gitattributes
+.gitignore
+.gradle
+build
+.idea
+*.iml
+*.md
+.env
+.env.*
+sql
+backups

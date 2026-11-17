@@ -19,6 +19,7 @@ e **MySQL**, com migrações de banco via **Flyway**.
 - [Como executar](#como-executar)
 - [Testes](#testes)
 - [Dados de exemplo](#dados-de-exemplo)
+- [Deploy em produção](#deploy-em-produção)
 - [Estrutura do projeto](#estrutura-do-projeto)
 
 ---
@@ -53,7 +54,7 @@ e **MySQL**, com migrações de banco via **Flyway**.
 | Linguagem | Java 21 |
 | Framework | Spring Boot 4.1.2 |
 | Persistência | Spring Data JPA / Hibernate |
-| Banco | MySQL 8.4 (produção/desenvolvimento) |
+| Banco | MySQL 8.4 (desenvolvimento e produção) |
 | Migrações | Flyway |
 | Segurança | Spring Security 6 + Thymeleaf Extras |
 | Templates | Thymeleaf |
@@ -193,9 +194,15 @@ Arquivos em `src/main/resources`:
 | `USUARIO_INICIAL` | `admin` (dev) | Nome do usuário criado no primeiro start |
 | `SENHA_INICIAL` | `admin` (dev) | Senha do usuário inicial (armazenada como BCrypt) |
 | `SPRING_PROFILES_ACTIVE` | `dev` | Perfil ativo (`dev` ou `prod`) |
+| `PORT` | `8080` | Porta HTTP (usada por PaaS que injetam a porta) |
+| `DB_POOL_MAX` | `5` | Tamanho máximo do pool de conexões em produção |
+| `COOKIE_SECURE` | `false` | `true` quando a aplicação é servida somente por HTTPS |
 
 > O usuário inicial só é criado quando a tabela `usuario` está vazia. Defina `USUARIO_INICIAL` e
 > `SENHA_INICIAL` em produção e altere a senha após o primeiro acesso.
+>
+> O `docker-compose.prod.yml` usa ainda `APP_DOMAIN`, `DB_NOME` e `DB_ROOT_SENHA`, descritas na
+> seção [Deploy em produção](#deploy-em-produção).
 
 ---
 
@@ -270,12 +277,204 @@ docker exec -i mysql mysql -uroot -p123456 agendashows < sql/shows_inserts.sql
 
 ---
 
+## Deploy em produção
+
+### Opção 1 — Railway (plano Hobby)
+
+O Railway hospeda a aplicação e o MySQL no mesmo projeto, sem sleep e com HTTPS automático.
+O plano Hobby custa **US$ 5/mês** e inclui **US$ 5 de uso**; um app pequeno com banco costuma ficar
+entre US$ 6 e US$ 10/mês.
+
+| Recurso | Plano Hobby |
+| --- | --- |
+| Aplicação | sem sleep, até 48 vCPU / 48 GB por serviço |
+| MySQL | template oficial `mysql:8` com volume de até 5 GB |
+| Domínio | `https://<nome>.up.railway.app` com certificado automático |
+| Região recomendada | US East (Virginia), a de menor latência para o Brasil |
+
+Arquivos usados: `Dockerfile` (imagem da aplicação) e `railway.json` (build e healthcheck).
+
+#### 1. Criar o projeto e o banco
+
+1. Crie a conta em [railway.com](https://railway.com) entrando com o GitHub.
+2. **New Project → Deploy from GitHub repo** e selecione `agendashows`.
+3. No projeto, clique em **New → Database → MySQL**.
+4. Aguarde o serviço MySQL ficar **Online**. O template cria automaticamente:
+
+   | Variável | Uso |
+   | --- | --- |
+   | `MYSQLHOST` | host interno (`*.railway.internal`) |
+   | `MYSQLPORT` | `3306` |
+   | `MYSQLUSER` | `root` |
+   | `MYSQLPASSWORD` | senha gerada |
+   | `MYSQLDATABASE` | `railway` |
+
+> O template pode usar MySQL 9.x. Se quiser a mesma versão do projeto, altere a imagem para
+> `mysql:8.4` em **Settings → Source** antes do primeiro deploy (o volume é criado no primeiro
+> start).
+
+#### 2. Configurar a aplicação
+
+No serviço **da aplicação** (não no MySQL), abra **Variables → Raw Editor** e cole:
+
+```dotenv
+SPRING_PROFILES_ACTIVE=prod
+TZ=America/Sao_Paulo
+COOKIE_SECURE=true
+DB_URL=jdbc:mysql://${{MySQL.MYSQLHOST}}:${{MySQL.MYSQLPORT}}/${{MySQL.MYSQLDATABASE}}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=America/Sao_Paulo&characterEncoding=UTF-8
+DB_USUARIO=${{MySQL.MYSQLUSER}}
+DB_SENHA=${{MySQL.MYSQLPASSWORD}}
+USUARIO_INICIAL=admin
+SENHA_INICIAL=<uma-senha-forte>
+```
+
+> As referências `${{MySQL.*}}` são resolvidas pelo Railway. Se o serviço de banco tiver outro
+> nome, ajuste o prefixo. O banco padrão chama-se `railway`; se quiser `agendashows`, altere
+> `MYSQL_DATABASE` no serviço MySQL antes do primeiro start.
+
+Depois, em **Settings → Networking → Generate Domain**, gere a URL pública.
+
+#### 3. Deploy
+
+O Railway reconstrói a cada push no GitHub. Acompanhe em **Deployments → Logs**: o Flyway aplica
+`V1`–`V3`, o Hibernate valida o schema e o usuário inicial é criado. Acesse a URL gerada.
+
+#### 4. Migrar os dados locais (opcional)
+
+O app cria o schema e o usuário inicial. Para importar os shows do MySQL local, use o host e a
+porta públicos do serviço MySQL (**Settings → Networking → Public Access**):
+
+```bash
+docker exec mysql mysqldump -uroot -p123456 --no-create-info --complete-insert \
+  agendashows shows > shows.sql
+
+docker run --rm -i mysql:8.4 mysql -h <host-publico> -P <porta-publica> \
+  -u root -p"<senha-do-MySQL>" railway < shows.sql
+```
+
+Importe apenas `shows`; não importe `usuario` nem `flyway_schema_history`.
+
+#### 5. Backup e operação
+
+- Ative os backups do banco no dashboard do MySQL (**Settings → Backups**) ou faça dumps
+  periódicos com `mysqldump`.
+- A sessão de login fica em memória: mantenha **uma única réplica**.
+- O volume do MySQL no Hobby tem até 5 GB, suficiente para esta aplicação.
+- Confira o consumo em **Usage**; o Hobby cobra apenas o que ultrapassar os US$ 5 inclusos.
+
+---
+
+### Opção 2 — VPS com Docker Compose
+
+Alternativa para quem tem (ou conseguir) uma VM Linux, como Oracle Cloud, Hetzner ou outra.
+A stack completa (MySQL 8.4, aplicação e Caddy com HTTPS) roda em containers.
+
+| Arquivo | Função |
+| --- | --- |
+| `Dockerfile` | Build multi-stage do JAR e imagem de execução com JRE 21 |
+| `docker-compose.prod.yml` | MySQL, aplicação e Caddy na mesma rede interna |
+| `Caddyfile` | Proxy reverso e certificado Let's Encrypt para `APP_DOMAIN` |
+| `.env.example` | Modelo das variáveis usadas no deploy |
+| `deploy.sh` | Atualiza o código e recria os containers |
+| `backup.sh` | Dump diário do MySQL com retenção configurável |
+
+#### 1. Preparar a VM
+
+Crie uma instância `VM.Standard.A1.Flex` (2 OCPU / 12 GB) com Ubuntu 24.04 e IP público reservado.
+Depois, no servidor:
+
+```bash
+sudo apt update && sudo apt -y upgrade
+sudo apt -y install docker.io docker-compose-v2 git ufw
+sudo usermod -aG docker ubuntu && newgrp docker
+sudo timedatectl set-timezone America/Sao_Paulo
+```
+
+#### 2. Liberar as portas
+
+No firewall do provedor (Security List/NSG, no caso da Oracle), libere `80/tcp`, `443/tcp` e
+`443/udp` para `0.0.0.0/0` e `22/tcp` apenas para o seu IP. Na própria VM:
+
+```bash
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw allow 443/udp
+sudo ufw enable
+```
+
+> As imagens Ubuntu da Oracle trazem regras de `iptables` que rejeitam o tráfego antes do UFW.
+> Se 80/443 continuarem inacessíveis, verifique com `sudo iptables -L INPUT --line-numbers` e
+> insira regras `ACCEPT` antes do `REJECT` existente (ou remova a regra de `REJECT`).
+
+#### 3. Apontar o domínio
+
+Crie um subdomínio gratuito no [DuckDNS](https://www.duckdns.org) (por exemplo,
+`agendashows.duckdns.org`) apontando para o IP público da VM. O Caddy emite e renova o certificado
+Let's Encrypt automaticamente. Alternativas: `nip.io`/`sslip.io` ou um domínio próprio.
+
+#### 4. Configurar e subir a aplicação
+
+```bash
+git clone https://github.com/rafarodriguespiano-maker/agendashows.git ~/agendashows
+cd ~/agendashows
+
+cp .env.example .env
+nano .env   # APP_DOMAIN, DB_SENHA, DB_ROOT_SENHA, USUARIO_INICIAL e SENHA_INICIAL
+
+chmod +x deploy.sh backup.sh
+./deploy.sh
+```
+
+Para acompanhar a inicialização (Flyway, validação do schema e criação do usuário inicial):
+
+```bash
+docker compose -f docker-compose.prod.yml logs -f app
+```
+
+Depois acesse `https://<APP_DOMAIN>` e entre com `USUARIO_INICIAL` / `SENHA_INICIAL`.
+
+> O MySQL só aplica `DB_USUARIO` e `DB_SENHA` na primeira inicialização do volume. Se precisar
+> alterar a senha depois, use `ALTER USER` dentro do container ou recrie o volume (isso apaga os
+> dados). O mesmo vale para o usuário inicial: ele só é criado quando a tabela `usuario` está vazia.
+
+#### 5. Backup diário
+
+```bash
+mkdir -p /home/ubuntu/backups
+crontab -e
+```
+
+```cron
+0 3 * * * /home/ubuntu/agendashows/backup.sh >> /home/ubuntu/backups/backup.log 2>&1
+```
+
+Os dumps ficam em `~/backups/agendashows` e são mantidos por 7 dias (`RETENCAO_DIAS`). Copie-os
+periodicamente para fora da VM.
+
+#### 6. Atualizar a aplicação
+
+```bash
+cd ~/agendashows && ./deploy.sh
+```
+
+> A sessão de login fica em memória, então a aplicação deve rodar em **uma única instância**.
+> O MySQL não expõe porta no host; o acesso é apenas pela rede interna do Compose.
+
+---
+
 ## Estrutura do projeto
 
 ```
 agendashows/
 ├── build.gradle
+├── Dockerfile                  # Imagem de produção (build + JRE 21)
+├── railway.json                # Build e healthcheck no Railway
 ├── docker-compose.yml          # MySQL 8.4 para desenvolvimento
+├── docker-compose.prod.yml     # MySQL + aplicação + Caddy para produção
+├── Caddyfile                   # Proxy reverso e HTTPS automático
+├── .env.example                # Modelo das variáveis de deploy
+├── deploy.sh / backup.sh       # Deploy e backup no servidor
 ├── gradlew / gradlew.bat       # Gradle Wrapper
 ├── sql/
 │   └── shows_inserts.sql       # Dados de exemplo
