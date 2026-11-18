@@ -45,6 +45,11 @@
             color: #fff !important;
         }
 
+        /* Navbar: usuário logado sem estourar a largura em telas estreitas */
+        .usuario-logado {
+            max-width: 45vw;
+        }
+
         @media (min-width: 992px) {
             .obs-show {
                 white-space: nowrap;
@@ -56,15 +61,15 @@
 </head>
 <body>
 <nav th:fragment="navbar" class="navbar navbar-expand navbar-dark bg-dark">
-    <div class="container-lg">
+    <div class="container-lg flex-wrap">
         <a class="navbar-brand" th:href="@{/estatisticas}">Agenda de Shows</a>
         <div class="navbar-nav me-auto">
             <a class="nav-link" th:href="@{/shows(mes=${mes},ano=${ano})}">Shows</a>
             <a class="nav-link" th:href="@{/estatisticas(mes=${mes},ano=${ano})}">Estatísticas</a>
         </div>
-        <form th:action="@{/sair}" method="post" class="d-flex align-items-center gap-2">
-            <span class="text-light small" sec:authentication="name"></span>
-            <button type="submit" class="btn btn-outline-light btn-sm">Sair</button>
+        <form th:action="@{/sair}" method="post" class="d-flex align-items-center gap-2 ms-auto">
+            <span class="text-light small text-truncate usuario-logado" sec:authentication="name"></span>
+            <button type="submit" class="btn btn-outline-light btn-sm text-nowrap">Sair</button>
         </form>
     </div>
 </nav>
