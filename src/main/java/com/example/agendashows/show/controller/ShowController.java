@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.format.Formatter;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -42,6 +43,9 @@ public class ShowController {
 
     private final ShowService showService;
 
+    @Value("${app.calendario.token:}")
+    private String tokenCalendario;
+
     @GetMapping
     public String listar(@ModelAttribute("filtro") ShowFilter filtro,
                          @PageableDefault(size = 20, sort = "data", direction = Sort.Direction.ASC) Pageable paginacao,
@@ -51,6 +55,9 @@ public class ShowController {
         model.addAttribute("meses", Meses.nomes());
         model.addAttribute("situacoes", StatusPagamento.values());
         model.addAttribute("parametrosLista", requisicao.getQueryString());
+        if (StringUtils.hasText(tokenCalendario)) {
+            model.addAttribute("calendarioToken", tokenCalendario);
+        }
         adicionarFiltroAoModelo(filtro.getMes(), filtro.getAno(), model);
         return "shows/list";
     }

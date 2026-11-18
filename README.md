@@ -19,6 +19,8 @@ e **MySQL**, com migrações de banco via **Flyway**.
 - [Como executar](#como-executar)
 - [Testes](#testes)
 - [Dados de exemplo](#dados-de-exemplo)
+- [Relatório semanal por e-mail](#relatório-semanal-por-e-mail)
+- [Calendário (Apple Calendar)](#calendário-apple-calendar)
 - [Deploy em produção](#deploy-em-produção)
 - [Estrutura do projeto](#estrutura-do-projeto)
 
@@ -27,7 +29,8 @@ e **MySQL**, com migrações de banco via **Flyway**.
 ## Funcionalidades
 
 - **Autenticação** com login por formulário e senha criptografada com BCrypt.
-- **Proteção de rotas**: todas as páginas exigem autenticação, exceto login, assets e página de erro.
+- **Proteção de rotas**: todas as páginas exigem autenticação, exceto login, assets, página de erro e
+  o feed do calendário (protegido por token na URL).
 - **CRUD de shows** com data, artista, local, horário, observações, cachê e status de pagamento.
 - **Cadastro em lote**: gera um show para cada ocorrência dos dias da semana marcados no mês/ano
   selecionados, copiando horário, cachê, artista, local, observações e pagamento mensal.
@@ -45,6 +48,8 @@ e **MySQL**, com migrações de banco via **Flyway**.
 - **Usuário inicial** criado automaticamente na primeira execução, quando o banco está vazio.
 - **Relatório semanal por e-mail**: toda segunda-feira às 8h (fuso `America/Sao_Paulo`) a aplicação envia
   para o usuário principal o relatório com os shows da semana (segunda a domingo), via SMTP ou API do Brevo.
+- **Calendário no Apple Calendar**: feed iCalendar com os próximos shows, disponível para assinatura
+  (atualiza sozinho) ou download avulso.
 - **Flash messages** para sucesso e erro das operações.
 
 ---
@@ -158,6 +163,7 @@ com `ddl-auto=validate`, ou seja, apenas valida o esquema.
 | `POST` | `/shows/{id}` | Atualiza um show |
 | `POST` | `/shows/{id}/pagamento` | Alterna pago / não pago |
 | `POST` | `/shows/{id}/excluir` | Exclui um show |
+| `GET` | `/calendario/{token}.ics` | Feed iCalendar dos próximos shows (público, protegido pelo token) |
 
 > As rotas `POST` exigem token CSRF, conforme o padrão do Spring Security.
 
@@ -210,7 +216,9 @@ Arquivos em `src/main/resources`:
 | `MAIL_AUTH` | `true` | Habilita autenticação SMTP |
 | `MAIL_STARTTLS` | `true` | Habilita STARTTLS |
 | `EMAIL_RELATORIO_CRON` | `0 0 8 * * MON` | Cron do envio (segunda, 8h) |
-| `APP_FUSO` | `America/Sao_Paulo` | Fuso usado no agendamento e no período do relatório |
+| `APP_FUSO` | `America/Sao_Paulo` | Fuso usado no agendamento, no período do relatório e no calendário |
+| `CALENDARIO_TOKEN` | vazio | Token secreto do feed `/calendario/{token}.ics`; vazio desabilita o feed |
+| `CALENDARIO_DURACAO_MINUTOS` | `180` | Duração dos eventos com horário no feed do calendário |
 | `SPRING_PROFILES_ACTIVE` | `dev` | Perfil ativo (`dev` ou `prod`) |
 | `PORT` | `8080` | Porta HTTP (usada por PaaS que injetam a porta) |
 | `DB_POOL_MAX` | `5` | Tamanho máximo do pool de conexões em produção |
@@ -367,6 +375,31 @@ MAIL_REMETENTE=seu-email@exemplo.com
 
 ---
 
+## Calendário (Apple Calendar)
+
+A listagem de shows tem um menu **Calendário** que permite assinar o feed iCalendar (`/calendario/{token}.ics`)
+no Apple Calendar. A assinatura é atualizada automaticamente pelo próprio app: shows novos ou editados
+aparecem sem precisar exportar de novo.
+
+- O feed traz apenas os shows **a partir de hoje**, em ordem cronológica.
+- Shows com horário viram eventos de **3 horas** (`CALENDARIO_DURACAO_MINUTOS` para mudar), com fuso
+  `APP_FUSO`; shows sem horário viram eventos de **dia inteiro**.
+- O `SUMMARY` é o artista, o `LOCATION` é o local e a `DESCRIPTION` são as observações.
+
+### Configurar
+
+1. Gere um token e defina `CALENDARIO_TOKEN` no ambiente (ex.: `openssl rand -hex 24`). Sem token, o feed
+   responde `404`.
+2. Reinicie a aplicação e, na tela de shows, use **Calendário › Copiar link de assinatura**.
+3. **iPhone:** Ajustes › Calendário › Contas › Adicionar conta › Outra › Assinar calendário (cole o link
+   `https://.../calendario/<token>.ics`). O botão **Assinar calendário** também abre o `webcal://` direto.
+4. **Mac:** Calendário › Arquivo › Nova assinatura de calendário e cole o link.
+
+O link é um segredo: quem o tiver consegue ler os próximos shows. Para revogar um link vazado, troque o
+`CALENDARIO_TOKEN` e reative a assinatura. Para baixar um arquivo avulso, o menu oferece **Baixar arquivo .ics**.
+
+---
+
 ## Deploy em produção
 
 ### Opção 1 — Railway (plano Hobby)
@@ -421,6 +454,7 @@ EMAIL_TRANSPORTE=brevo
 BREVO_API_KEY=<chave-da-api-brevo>
 MAIL_REMETENTE=<seu-email@exemplo.com>
 MAIL_NOME_REMETENTE=Agenda de Shows
+CALENDARIO_TOKEN=<openssl rand -hex 24>
 ```
 
 > As referências `${{MySQL.*}}` são resolvidas pelo Railway. Se o serviço de banco tiver outro
@@ -515,7 +549,7 @@ git clone https://github.com/rafarodriguespiano-maker/agendashows.git ~/agendash
 cd ~/agendashows
 
 cp .env.example .env
-nano .env   # APP_DOMAIN, DB_*, USUARIO_INICIAL, SENHA_INICIAL, EMAIL_INICIAL e MAIL_*
+nano .env   # APP_DOMAIN, DB_*, USUARIO_INICIAL, SENHA_INICIAL, EMAIL_INICIAL, MAIL_* e CALENDARIO_TOKEN
 
 chmod +x deploy.sh backup.sh
 ./deploy.sh

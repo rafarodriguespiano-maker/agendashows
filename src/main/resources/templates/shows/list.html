@@ -12,6 +12,36 @@
         <div class="d-flex gap-2">
             <a class="btn btn-outline-primary" th:href="@{/shows/lote(mes=${filtro.mes},ano=${filtro.ano})}">Incluir Novo lote</a>
             <a class="btn btn-primary" th:href="@{/shows/novo(mes=${filtro.mes},ano=${filtro.ano})}">Incluir</a>
+            <div class="dropdown" th:if="${calendarioToken}" th:attr="data-calendario-token=${calendarioToken}">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                    Calendário
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><h6 class="dropdown-header">Apple Calendário</h6></li>
+                    <li>
+                        <a class="dropdown-item calendario-webcal" href="#">
+                            <i class="bi bi-calendar-plus me-2" aria-hidden="true"></i>Assinar calendário
+                        </a>
+                    </li>
+                    <li>
+                        <button type="button" class="dropdown-item calendario-copiar">
+                            <i class="bi bi-link-45deg me-2" aria-hidden="true"></i>Copiar link de assinatura
+                        </button>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item" th:href="@{/calendario/{token}.ics(token=${calendarioToken},download=true)}">
+                            <i class="bi bi-download me-2" aria-hidden="true"></i>Baixar arquivo .ics
+                        </a>
+                    </li>
+                    <li>
+                        <span class="dropdown-item-text small text-muted">
+                            iPhone: Ajustes › Calendário › Contas › Adicionar conta › Outra › Assinar calendário.
+                        </span>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -211,6 +241,39 @@
                     form.requestSubmit();
                 }, 600);
             });
+        });
+    })();
+
+    // Assinatura do calendário: monta o link webcal a partir da origem atual e permite copiá-lo.
+    (function () {
+        const menu = document.querySelector('[data-calendario-token]');
+        if (!menu) {
+            return;
+        }
+
+        const feed = window.location.origin + '/calendario/' + menu.dataset.calendarioToken + '.ics';
+        const webcal = feed.replace(/^https?:/, 'webcal:');
+
+        const assinar = menu.querySelector('.calendario-webcal');
+        assinar.href = webcal;
+
+        const copiar = menu.querySelector('.calendario-copiar');
+        copiar.addEventListener('click', function () {
+            const conteudoOriginal = copiar.innerHTML;
+            const confirmar = function () {
+                copiar.innerHTML = '<i class="bi bi-check2 me-2" aria-hidden="true"></i>Link copiado';
+                setTimeout(function () {
+                    copiar.innerHTML = conteudoOriginal;
+                }, 2000);
+            };
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(webcal).then(confirmar).catch(function () {
+                    window.prompt('Copie o link de assinatura:', webcal);
+                });
+            } else {
+                window.prompt('Copie o link de assinatura:', webcal);
+            }
         });
     })();
 </script>
