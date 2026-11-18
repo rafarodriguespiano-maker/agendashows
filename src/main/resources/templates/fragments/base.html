@@ -65,6 +65,21 @@
             max-width: 45vw;
         }
 
+        /* Telas com cabeçalho fixo: navbar e filtros congelados ao rolar as grids */
+        body.cabecalho-fixo nav.navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+        }
+
+        @media (min-width: 768px) {
+            body.cabecalho-fixo .filtro-fixo {
+                position: sticky;
+                top: var(--navbar-altura, 0px);
+                z-index: 1020;
+            }
+        }
+
         @media (min-width: 992px) {
             .obs-show {
                 white-space: nowrap;
@@ -95,5 +110,26 @@
     <div th:if="${erro}" class="alert alert-danger" th:text="${erro}"></div>
 </div>
 <script th:fragment="scripts" src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:fragment="alturaCabecalho">
+    // Mantém o filtro fixo logo abaixo da navbar, qualquer que seja a altura dela.
+    (function () {
+        const navbar = document.querySelector('nav.navbar');
+        if (!navbar) {
+            return;
+        }
+
+        const ajustar = function () {
+            document.documentElement.style.setProperty('--navbar-altura', navbar.offsetHeight + 'px');
+        };
+
+        ajustar();
+        window.addEventListener('resize', ajustar);
+        window.addEventListener('load', ajustar);
+
+        if (typeof ResizeObserver !== 'undefined') {
+            new ResizeObserver(ajustar).observe(navbar);
+        }
+    })();
+</script>
 </body>
 </html>

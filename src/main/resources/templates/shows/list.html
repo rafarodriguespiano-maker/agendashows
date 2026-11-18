@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/base :: header('Shows')}"></head>
-<body class="bg-light">
+<body class="bg-light cabecalho-fixo">
 <nav th:replace="~{fragments/base :: navbar}"></nav>
 
 <main class="container-lg py-4">
@@ -45,7 +45,7 @@
         </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
+    <div class="card shadow-sm mb-4 filtro-fixo">
         <div class="card-body">
             <form id="filtro" th:action="@{/shows}" method="get" th:object="${filtro}" class="row g-2 align-items-end">
                 <div class="col-6 col-md-2">
@@ -215,6 +215,7 @@
     </nav>
 </main>
 <script th:replace="~{fragments/base :: scripts}"></script>
+<script th:replace="~{fragments/base :: alturaCabecalho}"></script>
 <script>
     (function () {
         const form = document.getElementById('filtro');
