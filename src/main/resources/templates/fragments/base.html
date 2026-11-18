@@ -22,6 +22,23 @@
             opacity: 0.85;
         }
 
+        /* Ações de shows passados: o dropdown fica opaco para não atrapalhar a leitura */
+        tr.show-passado > td:last-child {
+            opacity: 1;
+        }
+
+        tr.show-passado > td:last-child > *:not(.dropdown) {
+            opacity: 0.5;
+        }
+
+        tr.show-passado:hover > td:last-child {
+            opacity: 1;
+        }
+
+        tr.show-passado:hover > td:last-child > *:not(.dropdown) {
+            opacity: 0.85;
+        }
+
         /* Badge "Mensal" de shows já ocorridos: tons de cinza */
         tr.show-passado .badge.text-bg-info {
             background-color: var(--bs-gray-500) !important;
