@@ -1,10 +1,10 @@
-package com.example.agendashows.estatisticas.service;
+package com.example.agendashows.dashboard.service;
 
-import com.example.agendashows.estatisticas.dto.PeriodoFilter;
+import com.example.agendashows.dashboard.dto.PeriodoFilter;
 import java.time.LocalDate;
 
 /**
- * Intervalo de datas efetivamente aplicado nas consultas de estatísticas.
+ * Intervalo de datas efetivamente aplicado nas consultas de dashboard.
  *
  * <p>Somente um dos critérios é usado por consulta: ou o intervalo exato ({@code inicio}/{@code fim}),
  * ou o mês isolado em qualquer ano ({@code mes}).</p>

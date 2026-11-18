@@ -50,19 +50,19 @@ class AuthenticationTest {
     }
 
     @Test
-    void loginComCredenciaisValidasRedirecionaParaEstatisticas() throws Exception {
+    void loginComCredenciaisValidasRedirecionaParaDashboard() throws Exception {
         mvc.perform(post("/entrar").with(csrf())
                         .param("username", "musico")
                         .param("password", "segredo123"))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/estatisticas"));
+                .andExpect(redirectedUrl("/dashboard"));
     }
 
     @Test
-    void raizRedirecionaParaEstatisticas() throws Exception {
+    void raizRedirecionaParaDashboard() throws Exception {
         mvc.perform(get("/").with(user("musico")))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/estatisticas"));
+                .andExpect(redirectedUrl("/dashboard"));
     }
 
     @Test

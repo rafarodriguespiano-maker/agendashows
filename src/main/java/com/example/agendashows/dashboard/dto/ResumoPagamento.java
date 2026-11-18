@@ -1,4 +1,4 @@
-package com.example.agendashows.estatisticas.dto;
+package com.example.agendashows.dashboard.dto;
 
 import java.math.BigDecimal;
 

@@ -1,4 +1,4 @@
-package com.example.agendashows.estatisticas.dto;
+package com.example.agendashows.dashboard.dto;
 
 import java.time.LocalDate;
 import lombok.Getter;
@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * Filtro de mês e ano da tela de estatísticas.
+ * Filtro de mês e ano da tela de dashboard.
  *
  * <p>Quando nenhum dos campos é informado, o período atual é utilizado como padrão.</p>
  */

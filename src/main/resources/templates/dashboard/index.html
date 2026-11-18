@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/base :: header('Dashboard')}"></head>
+<body class="bg-light cabecalho-fixo">
+<nav th:replace="~{fragments/base :: navbar}"></nav>
+
+<main class="container-lg py-4">
+    <div th:replace="~{fragments/base :: messages}"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Dashboard</h1>
+        <a class="btn btn-outline-secondary" th:href="@{/shows(mes=${filtro.mes},ano=${filtro.ano})}">Voltar para a agenda</a>
+    </div>
+
+    <div class="card shadow-sm mb-4 filtro-fixo">
+        <div class="card-body">
+            <form id="filtro" th:action="@{/dashboard}" method="get" th:object="${filtro}" class="row g-2 align-items-end">
+                <div class="col-6 col-md-3">
+                    <label class="form-label small">Mês</label>
+                    <select class="form-select" th:field="*{mes}">
+                        <option value="">Todos</option>
+                        <option th:each="mes : ${meses}" th:value="${mes.key}" th:text="${mes.value}"></option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small">Ano</label>
+                    <input type="number" class="form-control" min="1" max="9999" th:field="*{ano}">
+                </div>
+                <div class="col-12 col-md-7 d-flex justify-content-end gap-2">
+                    <button type="submit" class="btn btn-secondary">Filtrar</button>
+                    <a class="btn btn-outline-secondary" th:href="@{/dashboard}">Período atual</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <h2 class="h5 mt-4 mb-3">Todos os shows</h2>
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase">Shows no período</div>
+                    <div class="fs-3 fw-semibold" th:text="${resumo.quantidadeGeral}">0</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div class="text-muted small text-uppercase">Cachê total</div>
+                    <div class="fs-3 fw-semibold" th:text="${#numbers.formatCurrency(resumo.cacheGeral)}">R$ 0,00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="h5 mt-4 mb-3">Pagamento à vista</h2>
+    <div th:replace="~{dashboard/fragments :: cartoes(${resumo.aVista})}"></div>
+
+    <h2 class="h5 mt-4 mb-3">Pagamento mensal</h2>
+    <div th:replace="~{dashboard/fragments :: cartoes(${resumo.mensal})}"></div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h2 class="h6 mb-0">Ranking de artistas</h2>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                <tr>
+                    <th class="d-none d-lg-table-cell">#</th>
+                    <th>Artista</th>
+                    <th class="text-end">Shows</th>
+                    <th class="text-end">Cachê acumulado</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(ranking)}">
+                    <td colspan="4" class="text-center text-muted py-4">Nenhum show encontrado no período.</td>
+                </tr>
+                <tr th:each="item, iter : ${ranking}">
+                    <td class="d-none d-lg-table-cell text-muted" th:text="${iter.count}"></td>
+                    <td th:text="${item.artista}"></td>
+                    <td class="text-end" th:text="${item.quantidadeShows}"></td>
+                    <td class="text-end" th:text="${#numbers.formatCurrency(item.cacheTotal)}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-white">
+            <h2 class="h6 mb-0">Próximos shows</h2>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                <tr>
+                    <th class="d-none d-lg-table-cell">Dia</th>
+                    <th>Data</th>
+                    <th>Artista</th>
+                    <th>Local</th>
+                    <th class="d-none d-lg-table-cell">Horário</th>
+                    <th class="d-none d-lg-table-cell text-end">Cachê</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(proximos)}">
+                    <td colspan="6" class="text-center text-muted py-4">Nenhum show futuro no período.</td>
+                </tr>
+                <tr th:each="show : ${proximos}">
+                    <td class="d-none d-lg-table-cell" th:text="${#strings.toUpperCase(#strings.substring(#temporals.format(show.data, 'EEE'), 0, 3))}"></td>
+                    <td>
+                        <span class="d-lg-none d-block fw-semibold"
+                              th:text="${#strings.toUpperCase(#strings.substring(#temporals.format(show.data, 'EEE'), 0, 3))}"></span>
+                        <span th:text="${#temporals.format(show.data, 'dd/MM')}"></span>
+                        <span class="d-lg-none d-block small text-muted"
+                              th:if="${show.horario != null}" th:text="${#temporals.format(show.horario, 'HH:mm')}"></span>
+                    </td>
+                    <td>
+                        <span th:text="${show.artista}"></span>
+                        <span class="badge text-bg-info align-middle ms-1" th:if="${show.pagamentoMensal}">Mensal</span>
+                        <small class="text-muted d-block obs-show"
+                               th:if="${show.observacoes}" th:text="${show.observacoes}"></small>
+                    </td>
+                    <td>
+                        <span th:text="${show.local}"></span>
+                        <span class="d-lg-none d-block small mt-1 text-nowrap">
+                            <span class="text-muted" th:text="${show.cache != null ? #numbers.formatCurrency(show.cache) : '-'}"></span>
+                            <span class="badge ms-1 align-middle" th:classappend="${show.pago} ? 'bg-success' : 'bg-secondary'"
+                                  th:text="${show.pago} ? 'Pago' : 'Não pago'"></span>
+                        </span>
+                    </td>
+                    <td class="d-none d-lg-table-cell" th:text="${show.horario != null ? #temporals.format(show.horario, 'HH:mm') : '-'}"></td>
+                    <td class="d-none d-lg-table-cell text-end">
+                        <span class="d-block" th:text="${show.cache != null ? #numbers.formatCurrency(show.cache) : '-'}"></span>
+                        <span class="badge mt-1" th:classappend="${show.pago} ? 'bg-success' : 'bg-secondary'"
+                              th:text="${show.pago} ? 'Pago' : 'Não pago'"></span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <h2 class="h5 mt-4 mb-3" th:text="${graficos.ano}">2026</h2>
+    <div class="row g-4">
+        <div class="col-12 col-xl-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h3 class="h6 mb-0">Total de shows por mês</h3>
+                </div>
+                <div class="card-body">
+                    <div style="position: relative; height: 320px;">
+                        <canvas id="graficoShowsMes"></canvas>
+                        <p class="grafico-vazio text-muted text-center d-none mb-0 py-5">Nenhum show no ano.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h3 class="h6 mb-0">Valor médio de cachê por show / mês</h3>
+                </div>
+                <div class="card-body">
+                    <div style="position: relative; height: 320px;">
+                        <canvas id="graficoCacheMedioMes"></canvas>
+                        <p class="grafico-vazio text-muted text-center d-none mb-0 py-5">Nenhum show no ano.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h3 class="h6 mb-0">Artistas atendidos no ano de <span th:text="${graficos.ano}">2026</span></h3>
+                </div>
+                <div class="card-body">
+                    <div class="mx-auto" style="position: relative; height: 380px; max-width: 520px;">
+                        <canvas id="graficoArtistas"></canvas>
+                        <p class="grafico-vazio text-muted text-center d-none mb-0 py-5">Nenhum show no ano.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="h5 mt-4 mb-3">Todos os anos</h2>
+    <div class="row g-4">
+        <div class="col-12 col-xl-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h3 class="h6 mb-0">Total de shows por ano</h3>
+                </div>
+                <div class="card-body">
+                    <div style="position: relative; height: 320px;">
+                        <canvas id="graficoShowsAno"></canvas>
+                        <p class="grafico-vazio text-muted text-center d-none mb-0 py-5">Nenhum show cadastrado.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-xl-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white">
+                    <h3 class="h6 mb-0">Média de cachês por ano</h3>
+                </div>
+                <div class="card-body">
+                    <div style="position: relative; height: 320px;">
+                        <canvas id="graficoCacheMedioAno"></canvas>
+                        <p class="grafico-vazio text-muted text-center d-none mb-0 py-5">Nenhum show cadastrado.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+<script th:replace="~{fragments/base :: scripts}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    (function () {
+        if (typeof Chart === 'undefined') {
+            return;
+        }
+
+        const meses = /*[[${mesesGrafico}]]*/ [];
+        const showsPorMes = /*[[${graficos.showsPorMes}]]*/ [];
+        const cacheMedioPorMes = /*[[${graficos.cacheMedioPorMes}]]*/ [];
+        const artistas = /*[[${graficos.artistas}]]*/ [];
+        const showsPorArtista = /*[[${graficos.showsPorArtista}]]*/ [];
+        const anos = /*[[${graficos.anos}]]*/ [];
+        const showsPorAno = /*[[${graficos.showsPorAno}]]*/ [];
+        const cacheMedioPorAno = /*[[${graficos.cacheMedioPorAno}]]*/ [];
+
+        const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        const cores = [
+            '#0d6efd', '#198754', '#fd7e14', '#6f42c1', '#20c997',
+            '#dc3545', '#0dcaf0', '#ffc107', '#6c757d', '#d63384',
+            '#6610f2', '#198754'
+        ];
+
+        function exibirAvisoVazio(canvasId, vazio) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) {
+                return true;
+            }
+            const aviso = canvas.parentElement.querySelector('.grafico-vazio');
+            if (vazio) {
+                canvas.classList.add('d-none');
+                if (aviso) {
+                    aviso.classList.remove('d-none');
+                }
+            }
+            return vazio;
+        }
+
+        const semShows = showsPorMes.every(function (valor) {
+            return Number(valor) === 0;
+        });
+
+        if (!exibirAvisoVazio('graficoShowsMes', semShows)) {
+            new Chart(document.getElementById('graficoShowsMes'), {
+                type: 'bar',
+                data: {
+                    labels: meses,
+                    datasets: [{
+                        label: 'Shows',
+                        data: showsPorMes,
+                        backgroundColor: '#0d6efd',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        }
+                    }
+                }
+            });
+        }
+
+        if (!exibirAvisoVazio('graficoCacheMedioMes', semShows)) {
+            new Chart(document.getElementById('graficoCacheMedioMes'), {
+                type: 'bar',
+                data: {
+                    labels: meses,
+                    datasets: [{
+                        label: 'Cachê médio',
+                        data: cacheMedioPorMes,
+                        backgroundColor: '#198754',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function (contexto) {
+                                    return moeda.format(contexto.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (valor) {
+                                    return moeda.format(valor);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        if (!exibirAvisoVazio('graficoArtistas', artistas.length === 0)) {
+            new Chart(document.getElementById('graficoArtistas'), {
+                type: 'pie',
+                data: {
+                    labels: artistas,
+                    datasets: [{
+                        data: showsPorArtista,
+                        backgroundColor: artistas.map(function (_, indice) {
+                            return cores[indice % cores.length];
+                        }),
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, padding: 12 }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (contexto) {
+                                    const total = contexto.dataset.data.reduce(function (soma, valor) {
+                                        return soma + Number(valor);
+                                    }, 0);
+                                    const percentual = total === 0
+                                        ? '0,0'
+                                        : (contexto.parsed / total * 100).toFixed(1).replace('.', ',');
+                                    return contexto.label + ': ' + contexto.parsed + ' (' + percentual + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        if (!exibirAvisoVazio('graficoShowsAno', anos.length === 0)) {
+            new Chart(document.getElementById('graficoShowsAno'), {
+                type: 'bar',
+                data: {
+                    labels: anos,
+                    datasets: [{
+                        label: 'Shows',
+                        data: showsPorAno,
+                        backgroundColor: '#0d6efd',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 }
+                        }
+                    }
+                }
+            });
+        }
+
+        if (!exibirAvisoVazio('graficoCacheMedioAno', anos.length === 0)) {
+            new Chart(document.getElementById('graficoCacheMedioAno'), {
+                type: 'bar',
+                data: {
+                    labels: anos,
+                    datasets: [{
+                        label: 'Cachê médio',
+                        data: cacheMedioPorAno,
+                        backgroundColor: '#198754',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function (contexto) {
+                                    return moeda.format(contexto.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function (valor) {
+                                    return moeda.format(valor);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    })();
+</script>
+<script th:replace="~{fragments/base :: alturaCabecalho}"></script>
+<script>
+    (function () {
+        const form = document.getElementById('filtro');
+        if (!form) {
+            return;
+        }
+
+        form.querySelectorAll('select, input[type="number"]').forEach(function (campo) {
+            campo.addEventListener('change', function () {
+                form.requestSubmit();
+            });
+        });
+    })();
+</script>
+</body>
+</html>

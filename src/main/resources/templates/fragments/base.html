@@ -94,12 +94,12 @@
 <body>
 <nav th:fragment="navbar" class="navbar navbar-expand navbar-dark bg-dark">
     <div class="container-lg flex-wrap">
-        <a class="navbar-brand d-flex align-items-center" th:href="@{/estatisticas}">
+        <a class="navbar-brand d-flex align-items-center" th:href="@{/dashboard}">
             <img th:src="@{/img/logo.png}" src="/img/logo.png" alt="Agenda de Shows" class="navbar-logo">
         </a>
         <div class="navbar-nav me-auto">
             <a class="nav-link" th:href="@{/shows(mes=${mes},ano=${ano})}">Shows</a>
-            <a class="nav-link" th:href="@{/estatisticas(mes=${mes},ano=${ano})}">Estatísticas</a>
+            <a class="nav-link" th:href="@{/dashboard(mes=${mes},ano=${ano})}">Dashboard</a>
         </div>
         <form th:action="@{/sair}" method="post" class="d-flex align-items-center gap-2 ms-auto">
             <span class="text-light small text-truncate usuario-logado" sec:authentication="name"></span>

@@ -71,6 +71,50 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
                                                      Pageable paginacao);
 
     /**
+     * Totais de shows e cachê médio por mês dentro do intervalo informado.
+     */
+    @Query("""
+            select month(s.data) as mes,
+                   count(s) as quantidadeShows,
+                   avg(s.cache) as cacheMedio
+            from Show s
+            where s.data >= :inicio
+              and s.data < :fim
+            group by month(s.data)
+            order by month(s.data)
+            """)
+    List<ResumoMesProjection> resumoPorMes(@Param("inicio") LocalDate inicio,
+                                           @Param("fim") LocalDate fim);
+
+    /**
+     * Totais de shows e cachê médio por ano, considerando todos os shows cadastrados.
+     */
+    @Query("""
+            select year(s.data) as ano,
+                   count(s) as quantidadeShows,
+                   avg(s.cache) as cacheMedio
+            from Show s
+            group by year(s.data)
+            order by year(s.data)
+            """)
+    List<ResumoAnoProjection> resumoPorAno();
+
+    /**
+     * Quantidade de shows por artista dentro do intervalo informado, do mais frequente ao menos frequente.
+     */
+    @Query("""
+            select s.artista as artista,
+                   count(s) as quantidadeShows
+            from Show s
+            where s.data >= :inicio
+              and s.data < :fim
+            group by s.artista
+            order by count(s) desc, s.artista asc
+            """)
+    List<ArtistaParticipacaoProjection> participacaoDeArtistas(@Param("inicio") LocalDate inicio,
+                                                               @Param("fim") LocalDate fim);
+
+    /**
      * Próximos shows do período: considera apenas datas a partir de hoje, em ordem cronológica.
      */
     @Query("""
@@ -137,5 +181,30 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
         Long getQuantidadeShows();
 
         BigDecimal getCacheTotal();
+    }
+
+    interface ResumoMesProjection {
+
+        Integer getMes();
+
+        Long getQuantidadeShows();
+
+        Double getCacheMedio();
+    }
+
+    interface ArtistaParticipacaoProjection {
+
+        String getArtista();
+
+        Long getQuantidadeShows();
+    }
+
+    interface ResumoAnoProjection {
+
+        Integer getAno();
+
+        Long getQuantidadeShows();
+
+        Double getCacheMedio();
     }
 }

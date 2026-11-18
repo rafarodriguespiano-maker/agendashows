@@ -150,7 +150,7 @@ com `ddl-auto=validate`, ou seja, apenas valida o esquema.
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| `GET` | `/` | Redireciona para `/estatisticas` |
+| `GET` | `/` | Redireciona para `/dashboard` |
 | `GET` | `/entrar` | Página de login |
 | `POST` | `/entrar` | Processa o login |
 | `POST` | `/sair` | Logout |
