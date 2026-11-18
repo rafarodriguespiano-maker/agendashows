@@ -45,6 +45,12 @@
             color: #fff !important;
         }
 
+        /* Logo da navbar */
+        .navbar-logo {
+            height: 56px;
+            width: auto;
+        }
+
         /* Navbar: usuário logado sem estourar a largura em telas estreitas */
         .usuario-logado {
             max-width: 45vw;
@@ -62,7 +68,9 @@
 <body>
 <nav th:fragment="navbar" class="navbar navbar-expand navbar-dark bg-dark">
     <div class="container-lg flex-wrap">
-        <a class="navbar-brand" th:href="@{/estatisticas}">Agenda de Shows</a>
+        <a class="navbar-brand d-flex align-items-center" th:href="@{/estatisticas}">
+            <img th:src="@{/img/logo.png}" src="/img/logo.png" alt="Agenda de Shows" class="navbar-logo">
+        </a>
         <div class="navbar-nav me-auto">
             <a class="nav-link" th:href="@{/shows(mes=${mes},ano=${ano})}">Shows</a>
             <a class="nav-link" th:href="@{/estatisticas(mes=${mes},ano=${ano})}">Estatísticas</a>
