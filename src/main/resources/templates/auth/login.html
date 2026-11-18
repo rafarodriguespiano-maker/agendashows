@@ -5,7 +5,9 @@
 <div class="container py-5" style="max-width: 420px;">
     <div class="card shadow-sm">
         <div class="card-body p-4">
-            <h1 class="h4 mb-4 text-center">Agenda de Shows</h1>
+            <h1 class="visually-hidden">Agenda de Shows</h1>
+            <img th:src="@{/img/logo-login.png}" src="/img/logo-login.png"
+                 alt="Agenda de Shows" class="login-logo">
 
             <div th:if="${param.erro}" class="alert alert-danger">Usuário ou senha inválidos.</div>
             <div th:if="${param.saiu}" class="alert alert-info">Você saiu do sistema.</div>
