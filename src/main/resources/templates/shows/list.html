@@ -103,14 +103,16 @@
                     <span th:text="${show.local}"></span>
                     <span class="d-lg-none d-block small mt-1 text-nowrap">
                         <span class="text-muted" th:text="${show.cache != null ? #numbers.formatCurrency(show.cache) : '-'}"></span>
-                        <span class="badge ms-1 align-middle" th:classappend="${show.pago} ? 'bg-success' : 'bg-secondary'"
-                              th:text="${show.pago} ? 'Pago' : 'Não pago'"></span>
+                        <span class="badge ms-1 align-middle"
+                              th:classappend="${show.pago ? 'bg-success' : (show.passado ? 'bg-danger-subtle text-danger-emphasis' : 'bg-secondary')}"
+                              th:text="${show.pago ? 'Pago' : (show.passado ? 'Não pago' : 'Previsto')}"></span>
                     </span>
                 </td>
                 <td class="d-none d-lg-table-cell">
                     <span class="d-block" th:text="${show.cache != null ? #numbers.formatCurrency(show.cache) : '-'}"></span>
-                    <span class="badge mt-1" th:classappend="${show.pago} ? 'bg-success' : 'bg-secondary'"
-                          th:text="${show.pago} ? 'Pago' : 'Não pago'"></span>
+                    <span class="badge mt-1"
+                          th:classappend="${show.pago ? 'bg-success' : (show.passado ? 'bg-danger-subtle text-danger-emphasis' : 'bg-secondary')}"
+                          th:text="${show.pago ? 'Pago' : (show.passado ? 'Não pago' : 'Previsto')}"></span>
                 </td>
                 <td class="text-end text-nowrap">
                     <div class="d-none d-lg-inline-flex gap-1">
