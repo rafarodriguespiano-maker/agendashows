@@ -73,10 +73,12 @@
         }
 
         @media (min-width: 768px) {
+            /* Z-index abaixo dos dropdowns do Bootstrap (1000) para que menus abertos
+               sobre a seção (ex.: botão Calendário) não fiquem escondidos. */
             body.cabecalho-fixo .filtro-fixo {
                 position: sticky;
                 top: var(--navbar-altura, 0px);
-                z-index: 1020;
+                z-index: 990;
             }
         }
 
