@@ -76,7 +76,8 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
     @Query("""
             select month(s.data) as mes,
                    count(s) as quantidadeShows,
-                   avg(s.cache) as cacheMedio
+                   avg(case when s.pagamentoMensal = false then s.cache end) as cacheMedioAVista,
+                   avg(case when s.pagamentoMensal = true then s.cache end) as cacheMedioMensal
             from Show s
             where s.data >= :inicio
               and s.data < :fim
@@ -92,7 +93,8 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
     @Query("""
             select year(s.data) as ano,
                    count(s) as quantidadeShows,
-                   avg(s.cache) as cacheMedio
+                   avg(case when s.pagamentoMensal = false then s.cache end) as cacheMedioAVista,
+                   avg(case when s.pagamentoMensal = true then s.cache end) as cacheMedioMensal
             from Show s
             group by year(s.data)
             order by year(s.data)
@@ -189,7 +191,9 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
 
         Long getQuantidadeShows();
 
-        Double getCacheMedio();
+        Double getCacheMedioAVista();
+
+        Double getCacheMedioMensal();
     }
 
     interface ArtistaParticipacaoProjection {
@@ -205,6 +209,8 @@ public interface ShowRepository extends JpaRepository<Show, Long>, JpaSpecificat
 
         Long getQuantidadeShows();
 
-        Double getCacheMedio();
+        Double getCacheMedioAVista();
+
+        Double getCacheMedioMensal();
     }
 }

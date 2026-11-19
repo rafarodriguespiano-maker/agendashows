@@ -161,16 +161,18 @@ class DashboardControllerTest {
         List<Long> showsPorMes = listaMeses(0L);
         showsPorMes.set(2, 2L);
         showsPorMes.set(3, 1L);
-        List<BigDecimal> cacheMedioPorMes = listaMeses(moeda("0.00"));
-        cacheMedioPorMes.set(2, moeda("750.00"));
-        cacheMedioPorMes.set(3, moeda("300.00"));
+        List<BigDecimal> cacheMedioAVistaPorMes = listaMeses(moeda("0.00"));
+        cacheMedioAVistaPorMes.set(2, moeda("750.00"));
+        cacheMedioAVistaPorMes.set(3, moeda("300.00"));
+        List<BigDecimal> cacheMedioMensalPorMes = listaMeses(moeda("0.00"));
 
         mvc.perform(get("/dashboard").param("ano", "2026"))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("graficos", is(new GraficosDashboard(
-                        2026, showsPorMes, cacheMedioPorMes,
+                        2026, showsPorMes, cacheMedioAVistaPorMes, cacheMedioMensalPorMes,
                         List.of("Banda A", "Banda B"), List.of(2L, 1L),
-                        List.of(2026), List.of(3L), List.of(moeda("600.00"))))))
+                        List.of(2026), List.of(3L),
+                        List.of(moeda("600.00")), List.of(moeda("0.00"))))))
                 .andExpect(content().string(containsString("Total de shows por mês")))
                 .andExpect(content().string(containsString("Valor médio de cachê por show / mês")))
                 .andExpect(content().string(containsString("Artistas atendidos no ano de")))
@@ -187,16 +189,42 @@ class DashboardControllerTest {
 
         List<Long> showsPorMes = listaMeses(0L);
         showsPorMes.set(hoje.getMonthValue() - 1, 1L);
-        List<BigDecimal> cacheMedioPorMes = listaMeses(moeda("0.00"));
-        cacheMedioPorMes.set(hoje.getMonthValue() - 1, moeda("500.00"));
+        List<BigDecimal> cacheMedioAVistaPorMes = listaMeses(moeda("0.00"));
+        cacheMedioAVistaPorMes.set(hoje.getMonthValue() - 1, moeda("500.00"));
+        List<BigDecimal> cacheMedioMensalPorMes = listaMeses(moeda("0.00"));
 
         mvc.perform(get("/dashboard").param("mes", String.valueOf(hoje.getMonthValue())))
                 .andExpect(status().isOk())
                 .andExpect(model().attribute("graficos", is(new GraficosDashboard(
-                        hoje.getYear(), showsPorMes, cacheMedioPorMes,
+                        hoje.getYear(), showsPorMes, cacheMedioAVistaPorMes, cacheMedioMensalPorMes,
                         List.of("Banda Atual"), List.of(1L),
                         List.of(hoje.getYear() - 1, hoje.getYear()), List.of(1L, 1L),
-                        List.of(moeda("900.00"), moeda("500.00"))))));
+                        List.of(moeda("900.00"), moeda("500.00")),
+                        List.of(moeda("0.00"), moeda("0.00"))))));
+    }
+
+    @Test
+    @WithMockUser
+    void separaMediasDeCachePorFormaDePagamento() throws Exception {
+        salvar(LocalDate.of(2026, 3, 10), "Banda A", "3000.00", true);
+        Show mensal = salvar(LocalDate.of(2026, 3, 15), "Banda B", "2000.00", true);
+        mensal.setPagamentoMensal(true);
+        showRepository.save(mensal);
+
+        List<Long> showsPorMes = listaMeses(0L);
+        showsPorMes.set(2, 2L);
+        List<BigDecimal> cacheMedioAVistaPorMes = listaMeses(moeda("0.00"));
+        cacheMedioAVistaPorMes.set(2, moeda("3000.00"));
+        List<BigDecimal> cacheMedioMensalPorMes = listaMeses(moeda("0.00"));
+        cacheMedioMensalPorMes.set(2, moeda("2000.00"));
+
+        mvc.perform(get("/dashboard").param("ano", "2026"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("graficos", is(new GraficosDashboard(
+                        2026, showsPorMes, cacheMedioAVistaPorMes, cacheMedioMensalPorMes,
+                        List.of("Banda A", "Banda B"), List.of(1L, 1L),
+                        List.of(2026), List.of(2L),
+                        List.of(moeda("3000.00")), List.of(moeda("2000.00"))))));
     }
 
     @Test

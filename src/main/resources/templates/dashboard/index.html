@@ -227,12 +227,14 @@
 
         const meses = /*[[${mesesGrafico}]]*/ [];
         const showsPorMes = /*[[${graficos.showsPorMes}]]*/ [];
-        const cacheMedioPorMes = /*[[${graficos.cacheMedioPorMes}]]*/ [];
+        const cacheMedioAVistaPorMes = /*[[${graficos.cacheMedioAVistaPorMes}]]*/ [];
+        const cacheMedioMensalPorMes = /*[[${graficos.cacheMedioMensalPorMes}]]*/ [];
         const artistas = /*[[${graficos.artistas}]]*/ [];
         const showsPorArtista = /*[[${graficos.showsPorArtista}]]*/ [];
         const anos = /*[[${graficos.anos}]]*/ [];
         const showsPorAno = /*[[${graficos.showsPorAno}]]*/ [];
-        const cacheMedioPorAno = /*[[${graficos.cacheMedioPorAno}]]*/ [];
+        const cacheMedioAVistaPorAno = /*[[${graficos.cacheMedioAVistaPorAno}]]*/ [];
+        const cacheMedioMensalPorAno = /*[[${graficos.cacheMedioMensalPorAno}]]*/ [];
 
         const moeda = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -291,25 +293,42 @@
 
         if (!exibirAvisoVazio('graficoCacheMedioMes', semShows)) {
             new Chart(document.getElementById('graficoCacheMedioMes'), {
-                type: 'bar',
+                type: 'line',
                 data: {
                     labels: meses,
-                    datasets: [{
-                        label: 'Cachê médio',
-                        data: cacheMedioPorMes,
-                        backgroundColor: '#198754',
-                        borderRadius: 4
-                    }]
+                    datasets: [
+                        {
+                            label: 'Sem pagamento mensal',
+                            data: cacheMedioAVistaPorMes,
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Com pagamento mensal',
+                            data: cacheMedioMensalPorMes,
+                            borderColor: '#198754',
+                            backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 3
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false },
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, padding: 12 }
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function (contexto) {
-                                    return moeda.format(contexto.parsed.y);
+                                    return contexto.dataset.label + ': ' + moeda.format(contexto.parsed.y);
                                 }
                             }
                         }
@@ -398,25 +417,42 @@
 
         if (!exibirAvisoVazio('graficoCacheMedioAno', anos.length === 0)) {
             new Chart(document.getElementById('graficoCacheMedioAno'), {
-                type: 'bar',
+                type: 'line',
                 data: {
                     labels: anos,
-                    datasets: [{
-                        label: 'Cachê médio',
-                        data: cacheMedioPorAno,
-                        backgroundColor: '#198754',
-                        borderRadius: 4
-                    }]
+                    datasets: [
+                        {
+                            label: 'Sem pagamento mensal',
+                            data: cacheMedioAVistaPorAno,
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Com pagamento mensal',
+                            data: cacheMedioMensalPorAno,
+                            borderColor: '#198754',
+                            backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                            tension: 0.3,
+                            fill: false,
+                            pointRadius: 3
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false },
+                        legend: {
+                            position: 'bottom',
+                            labels: { boxWidth: 12, padding: 12 }
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function (contexto) {
-                                    return moeda.format(contexto.parsed.y);
+                                    return contexto.dataset.label + ': ' + moeda.format(contexto.parsed.y);
                                 }
                             }
                         }

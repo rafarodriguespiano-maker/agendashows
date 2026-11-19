@@ -95,11 +95,13 @@ public class DashboardService {
                 .collect(Collectors.toMap(ResumoMesProjection::getMes, Function.identity()));
 
         List<Long> showsPorMes = new ArrayList<>(12);
-        List<BigDecimal> cacheMedioPorMes = new ArrayList<>(12);
+        List<BigDecimal> cacheMedioAVistaPorMes = new ArrayList<>(12);
+        List<BigDecimal> cacheMedioMensalPorMes = new ArrayList<>(12);
         for (int mes = 1; mes <= 12; mes++) {
             ResumoMesProjection resumo = resumosPorMes.get(mes);
             showsPorMes.add(resumo == null ? 0L : numero(resumo.getQuantidadeShows()));
-            cacheMedioPorMes.add(resumo == null ? moeda(BigDecimal.ZERO) : moeda(resumo.getCacheMedio()));
+            cacheMedioAVistaPorMes.add(resumo == null ? moeda(BigDecimal.ZERO) : moeda(resumo.getCacheMedioAVista()));
+            cacheMedioMensalPorMes.add(resumo == null ? moeda(BigDecimal.ZERO) : moeda(resumo.getCacheMedioMensal()));
         }
 
         List<ArtistaParticipacaoProjection> participacoes = showRepository.participacaoDeArtistas(inicio, fim);
@@ -109,12 +111,14 @@ public class DashboardService {
         return new GraficosDashboard(
                 ano,
                 showsPorMes,
-                cacheMedioPorMes,
+                cacheMedioAVistaPorMes,
+                cacheMedioMensalPorMes,
                 participacoes.stream().map(ArtistaParticipacaoProjection::getArtista).toList(),
                 participacoes.stream().map(item -> numero(item.getQuantidadeShows())).toList(),
                 resumosPorAno.stream().map(ResumoAnoProjection::getAno).toList(),
                 resumosPorAno.stream().map(item -> numero(item.getQuantidadeShows())).toList(),
-                resumosPorAno.stream().map(item -> moeda(item.getCacheMedio())).toList());
+                resumosPorAno.stream().map(item -> moeda(item.getCacheMedioAVista())).toList(),
+                resumosPorAno.stream().map(item -> moeda(item.getCacheMedioMensal())).toList());
     }
 
     @Transactional(readOnly = true)
